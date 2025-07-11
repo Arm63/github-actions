@@ -1,0 +1,33 @@
+name: Hello World - My First Workflow
+
+# When should this workflow run?
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Say Hello
+      run: echo "🎉 Hello from GitHub Actions!"
+      
+    - name: Show current date
+      run: date
+      
+    - name: Show system info
+      run: |
+        echo "Runner OS: ${{ runner.os }}"
+        echo "GitHub Actor: ${{ github.actor }}"
+        echo "Repository: ${{ github.repository }}"
+        echo "Branch: ${{ github.ref }}"
+        
+    - name: Practice YAML syntax
+      run: |
+        echo "This is a multi-line command"
+        echo "Learning YAML is fun!"
+        echo "Indentation matters in YAML" 

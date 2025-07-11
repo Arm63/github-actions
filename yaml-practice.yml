@@ -1,0 +1,156 @@
+# YAML Practice File - GitHub Actions Syntax Examples
+
+# 1. Basic Key-Value Pairs
+name: "My Workflow Name"
+version: 1.0
+enabled: true
+timeout: 30
+
+# 2. Lists (Arrays)
+branches:
+  - main
+  - develop
+  - feature/*
+
+# Inline list syntax
+events: [push, pull_request, workflow_dispatch]
+
+# 3. Objects (Dictionaries)
+environment:
+  name: production
+  url: https://example.com
+  variables:
+    API_KEY: secret123
+    DEBUG: false
+
+# 4. Multi-line strings
+description: |
+  This is a multi-line description
+  that preserves line breaks
+  and formatting.
+
+script: >
+  This is a folded multi-line string
+  that will be converted to a single line
+  with spaces between words.
+
+# 5. GitHub Actions specific syntax
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+# 6. Jobs with dependencies
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.11]
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test  # This job depends on 'test' job
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Deploy to production
+        run: echo "Deploying to production..."
+
+# 7. Environment variables and secrets
+env:
+  GLOBAL_VAR: "This is available to all jobs"
+  NODE_VERSION: "18"
+
+# 8. Conditional expressions
+conditional_examples:
+  # Run only on main branch
+  main_only: ${{ github.ref == 'refs/heads/main' }}
+  
+  # Run only on pull requests
+  pr_only: ${{ github.event_name == 'pull_request' }}
+  
+  # Run only if previous job succeeded
+  success_only: ${{ success() }}
+  
+  # Run always (even if previous steps failed)
+  always_run: ${{ always() }}
+
+# 9. Common YAML mistakes to avoid
+mistakes_to_avoid:
+  # ❌ Wrong indentation
+  # jobs:
+  # test:  # Should be indented
+  #   runs-on: ubuntu-latest
+  
+  # ✅ Correct indentation
+  # jobs:
+  #   test:  # Properly indented
+  #     runs-on: ubuntu-latest
+  
+  # ❌ Missing quotes for special characters
+  # name: My App: Tests  # Colon needs quotes
+  
+  # ✅ Proper quoting
+  # name: "My App: Tests"
+  
+  # ❌ Inconsistent list formatting
+  # mixed_list:
+  #   - item1
+  #   - item2
+  #     - nested_item  # Wrong indentation
+  
+  # ✅ Consistent formatting
+  consistent_list:
+    - item1
+    - item2
+    - nested:
+        - nested_item1
+        - nested_item2
+
+# 10. Advanced patterns
+advanced_patterns:
+  # Using expressions
+  dynamic_value: ${{ github.event.inputs.environment || 'staging' }}
+  
+  # Complex conditionals
+  complex_condition: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+  
+  # Using functions
+  formatted_date: ${{ format('{0:yyyy-MM-dd}', github.event.head_commit.timestamp) }}
+  
+  # Using contexts
+  actor_info: ${{ github.actor }}
+  repo_info: ${{ github.repository }}
+  run_info: ${{ github.run_number }} 
