@@ -89,7 +89,7 @@ jobs:
         poetry --version
         if [ -f "pyproject.toml" ]; then
           echo "📦 Installing dependencies from pyproject.toml"
-          poetry install
+          poetry install --no-root
         else
           echo "⚠️  No pyproject.toml found, creating minimal project"
           poetry init --name github-actions-practice --no-interaction
