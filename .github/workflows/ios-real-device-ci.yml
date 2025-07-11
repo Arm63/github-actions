@@ -94,8 +94,12 @@ jobs:
         
         # Check XCUITest driver installation
         echo "Checking XCUITest driver..."
-        if appium driver list --installed | grep -q "xcuitest.*\[installed"; then
-          echo "✅ XCUITest driver already installed"
+        
+        # Save driver list to file and check
+        appium driver list --installed > /tmp/drivers.txt 2>&1
+        if grep -q "xcuitest" /tmp/drivers.txt; then
+          XCUITEST_VERSION=$(grep "xcuitest" /tmp/drivers.txt | head -1)
+          echo "✅ XCUITest driver already installed: $XCUITEST_VERSION"
         else
           echo "Installing XCUITest driver..."
           appium driver install xcuitest
