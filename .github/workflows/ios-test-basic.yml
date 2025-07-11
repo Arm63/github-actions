@@ -89,7 +89,12 @@ jobs:
         poetry --version
         if [ -f "pyproject.toml" ]; then
           echo "📦 Installing dependencies from pyproject.toml"
-          poetry install --no-root
+          # Handle lock file conflicts
+          if ! poetry install --no-root 2>/dev/null; then
+            echo "🔄 Lock file conflict detected, regenerating..."
+            poetry lock --no-update
+            poetry install --no-root
+          fi
         else
           echo "⚠️  No pyproject.toml found, creating minimal project"
           poetry init --name github-actions-practice --no-interaction
