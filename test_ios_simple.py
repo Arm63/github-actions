@@ -57,9 +57,9 @@ def test_ios_connection():
         options.udid = device_udid
         options.bundle_id = "com.inconceptlabs.liveboard"
         options.automation_name = "XCUITest"
-        options.new_command_timeout = 300
-        options.wda_launch_timeout = 60000
-        options.wda_connection_timeout = 60000
+        options.new_command_timeout = 600
+        options.wda_launch_timeout = 180000
+        options.wda_connection_timeout = 180000
         
         # Add team ID and WDA bundle ID using set_capability
         options.set_capability("xcuitestTeamId", team_id)

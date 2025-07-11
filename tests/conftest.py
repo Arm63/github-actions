@@ -22,9 +22,9 @@ def ios_driver():
         'udid': device_udid,
         'bundleId': 'com.inconceptlabs.liveboard',
         'automationName': 'XCUITest',
-        'newCommandTimeout': 300,
-        'wdaLaunchTimeout': 60000,
-        'wdaConnectionTimeout': 60000,
+        'newCommandTimeout': 600,
+        'wdaLaunchTimeout': 180000,
+        'wdaConnectionTimeout': 180000,
         'xcuitestTeamId': team_id,
         'updateWDABundleId': f"{team_id}.WebDriverAgentRunner"
     }
