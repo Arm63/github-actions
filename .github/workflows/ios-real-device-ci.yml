@@ -29,6 +29,14 @@ jobs:
       run: |
         echo "🔍 Checking iOS device setup..."
         
+        # Run debug script if available
+        if [ -f "debug_device_access.sh" ]; then
+          echo "🐛 Running device access debug script..."
+          ./debug_device_access.sh
+          echo "🐛 Debug script completed"
+          echo "----------------------------------------"
+        fi
+        
         # Check if libimobiledevice is installed
         if ! command -v idevice_id &> /dev/null; then
           echo "❌ libimobiledevice not installed"
@@ -37,6 +45,9 @@ jobs:
         fi
         
         echo "✅ libimobiledevice is installed"
+        
+        # Ensure PATH includes homebrew for consistent tool access
+        export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
         
         # List all connected devices with detailed info
         echo "📱 Checking connected devices..."
@@ -58,7 +69,25 @@ jobs:
           echo "🔍 USB debugging info:"
           system_profiler SPUSBDataType | grep -A 10 -B 2 "iPhone\|iPad" || echo "No iOS devices found in USB"
           
-          exit 1
+          # Try to fix common issues
+          echo "🔧 Attempting to fix device connection issues..."
+          
+          # Ensure PATH includes homebrew
+          export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+          
+          # Try to re-establish device pairing
+          echo "Attempting device re-pairing..."
+          idevicepair pair 2>&1 || echo "Pairing failed or not needed"
+          
+          # Wait a moment and try again
+          sleep 2
+          DEVICE_COUNT_RETRY=$(idevice_id -l 2>/dev/null | wc -l)
+          if [ "$DEVICE_COUNT_RETRY" -eq 0 ]; then
+            echo "❌ Still no device found after retry"
+            exit 1
+          else
+            echo "✅ Device found after retry!"
+          fi
         fi
         
         # Get device info
