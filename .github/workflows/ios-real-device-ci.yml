@@ -147,18 +147,18 @@ jobs:
         echo "Team ID: $TEAM_ID"
         
         # Check if we have the iOS test files
-        if [ -f "test_ios_real_device.py" ]; then
-          echo "Running simple connection test..."
-          poetry run python test_ios_real_device.py
+        if [ -f "test_ios_simple.py" ]; then
+          echo "Running simple iOS test..."
+          poetry run python test_ios_simple.py
         else
-          echo "test_ios_real_device.py not found, skipping connection test"
+          echo "test_ios_simple.py not found, skipping simple test"
         fi
         
         if [ -f "tests/test_login_ios.py" ]; then
-          echo "Running UI login test..."
-          poetry run pytest tests/test_login_ios.py::test_click_composable_ios -v
+          echo "Running comprehensive iOS test..."
+          poetry run pytest tests/test_login_ios.py::TestLiveboardiOS::test_click_composable_ios -v
         else
-          echo "tests/test_login_ios.py not found, skipping UI test"
+          echo "tests/test_login_ios.py not found, skipping comprehensive test"
         fi
         
     - name: Upload test artifacts
