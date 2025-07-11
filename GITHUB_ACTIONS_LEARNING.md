@@ -193,13 +193,13 @@ on:
     python-version: '3.11'
 
 # Cache dependencies
-- uses: actions/cache@v3
+- uses: actions/cache@v4
   with:
     path: ~/.cache/pip
     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
 # Upload artifacts
-- uses: actions/upload-artifact@v3
+- uses: actions/upload-artifact@v4
   with:
     name: test-results
     path: test-results/
@@ -309,11 +309,11 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Cache Poetry dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pypoetry
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+         - name: Cache Poetry dependencies
+       uses: actions/cache@v4
+       with:
+         path: ~/.cache/pypoetry
+         key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
         
     - name: Install Poetry
       run: |
@@ -333,14 +333,14 @@ jobs:
       run: |
         poetry run python test_ios_real_device.py
         
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: test-results
-        path: |
-          *.png
-          appium.log
+         - name: Upload test results
+       uses: actions/upload-artifact@v4
+       if: always()
+       with:
+         name: test-results
+         path: |
+           *.png
+           appium.log
           
     - name: Stop Appium server
       if: always()
@@ -393,7 +393,7 @@ steps:
     poetry run pytest --html=report.html --self-contained-html
     
 - name: Upload HTML report
-  uses: actions/upload-artifact@v3
+  uses: actions/upload-artifact@v4
   with:
     name: html-report
     path: report.html
@@ -406,13 +406,13 @@ steps:
 ### **Caching Strategies:**
 ```yaml
 # Cache Python dependencies
-- uses: actions/cache@v3
+- uses: actions/cache@v4
   with:
     path: ~/.cache/pip
     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
 # Cache Node.js dependencies (for Appium)
-- uses: actions/cache@v3
+- uses: actions/cache@v4
   with:
     path: ~/.npm
     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}

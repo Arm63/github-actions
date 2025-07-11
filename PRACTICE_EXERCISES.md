@@ -192,10 +192,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: echo "Current date: $(date)" > date.txt
-    - uses: actions/upload-artifact@v3
-      with:
-        name: date-file
-        path: date.txt
+    - uses: actions/upload-artifact@v4
+  with:
+    name: date-file
+    path: date.txt
 ```
 </details>
 
@@ -374,10 +374,10 @@ jobs:
     - run: |
         echo "Test completed at $(date)" > test-results.txt
         echo "Status: PASSED" >> test-results.txt
-    - uses: actions/upload-artifact@v3
-      with:
-        name: test-results
-        path: test-results.txt
+         - uses: actions/upload-artifact@v4
+       with:
+         name: test-results
+         path: test-results.txt
 ```
 </details>
 
