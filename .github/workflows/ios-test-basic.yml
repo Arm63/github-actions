@@ -87,7 +87,14 @@ jobs:
     - name: Install dependencies
       run: |
         poetry --version
-        poetry install
+        if [ -f "pyproject.toml" ]; then
+          echo "📦 Installing dependencies from pyproject.toml"
+          poetry install
+        else
+          echo "⚠️  No pyproject.toml found, creating minimal project"
+          poetry init --name github-actions-practice --no-interaction
+          poetry add requests
+        fi
         
     - name: Show installed packages
       run: poetry show
