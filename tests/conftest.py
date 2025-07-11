@@ -30,7 +30,24 @@ def ios_driver():
     }
     
     # Create driver
-    driver = webdriver.Remote('http://localhost:4723/wd/hub', capabilities)
+    from appium.options.ios.xcuitest.base import XCUITestOptions
+    
+    options = XCUITestOptions()
+    options.platform_name = capabilities['platformName']
+    options.platform_version = capabilities['platformVersion']
+    options.device_name = capabilities['deviceName']
+    options.udid = capabilities['udid']
+    options.bundle_id = capabilities['bundleId']
+    options.automation_name = capabilities['automationName']
+    options.new_command_timeout = capabilities['newCommandTimeout']
+    options.wda_launch_timeout = capabilities['wdaLaunchTimeout']
+    options.wda_connection_timeout = capabilities['wdaConnectionTimeout']
+    
+    # Set additional capabilities
+    options.set_capability("xcuitestTeamId", capabilities['xcuitestTeamId'])
+    options.set_capability("updateWDABundleId", capabilities['updateWDABundleId'])
+    
+    driver = webdriver.Remote('http://localhost:4723', options=options)
     driver.implicitly_wait(10)
     
     print(f"✅ Connected to iOS device: {device_name} (UDID: {device_udid})")

@@ -35,9 +35,26 @@ class TestLiveboardiOS:
         }
         
         # Initialize driver
+        from appium.options.ios.xcuitest.base import XCUITestOptions
+        
+        options = XCUITestOptions()
+        options.platform_name = capabilities['platformName']
+        options.platform_version = capabilities['platformVersion']
+        options.device_name = capabilities['deviceName']
+        options.udid = capabilities['udid']
+        options.bundle_id = capabilities['bundleId']
+        options.automation_name = capabilities['automationName']
+        options.new_command_timeout = capabilities['newCommandTimeout']
+        options.wda_launch_timeout = capabilities['wdaLaunchTimeout']
+        options.wda_connection_timeout = capabilities['wdaConnectionTimeout']
+        
+        # Set additional capabilities
+        options.set_capability("xcuitestTeamId", capabilities['xcuitestTeamId'])
+        options.set_capability("updateWDABundleId", capabilities['updateWDABundleId'])
+        
         self.driver = webdriver.Remote(
             command_executor='http://localhost:4723',
-            desired_capabilities=capabilities
+            options=options
         )
         
         # Set implicit wait
