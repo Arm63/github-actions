@@ -27,20 +27,49 @@ jobs:
       
     - name: Check iOS device connection
       run: |
+        echo "🔍 Checking iOS device setup..."
+        
+        # Check if libimobiledevice is installed
         if ! command -v idevice_id &> /dev/null; then
           echo "❌ libimobiledevice not installed"
+          echo "💡 Install with: brew install libimobiledevice"
           exit 1
         fi
         
-        DEVICE_COUNT=$(idevice_id -l | wc -l)
+        echo "✅ libimobiledevice is installed"
+        
+        # List all connected devices with detailed info
+        echo "📱 Checking connected devices..."
+        idevice_id -l || true
+        
+        # Get device count
+        DEVICE_COUNT=$(idevice_id -l 2>/dev/null | wc -l)
+        echo "Found $DEVICE_COUNT device(s)"
+        
         if [ "$DEVICE_COUNT" -eq 0 ]; then
           echo "❌ No iOS device connected via USB"
-          echo "💡 Please connect your iPhone and trust the computer"
+          echo "💡 Please:"
+          echo "   1. Connect your iPhone via USB cable"
+          echo "   2. Trust the computer on your device"
+          echo "   3. Make sure the device is unlocked"
+          echo "   4. Check cable connection"
+          
+          # Additional debugging
+          echo "🔍 USB debugging info:"
+          system_profiler SPUSBDataType | grep -A 10 -B 2 "iPhone\|iPad" || echo "No iOS devices found in USB"
+          
           exit 1
         fi
         
-        echo "✅ iOS device connected"
-        idevice_id -l
+        # Get device info
+        DEVICE_UDID=$(idevice_id -l | head -1)
+        echo "✅ iOS device connected: $DEVICE_UDID"
+        
+        # Check device info
+        echo "📋 Device information:"
+        ideviceinfo -u "$DEVICE_UDID" -k DeviceName || echo "Could not get device name"
+        ideviceinfo -u "$DEVICE_UDID" -k ProductVersion || echo "Could not get iOS version"
+        ideviceinfo -u "$DEVICE_UDID" -k ProductType || echo "Could not get device type"
         
     - name: Setup Python environment
       run: |
@@ -136,8 +165,15 @@ jobs:
         # Ensure PATH includes Poetry
         export PATH="$HOME/.local/bin:$PATH"
         
-        # Get device UDID
+        # Double-check device connection before tests
+        echo "🔍 Re-checking device connection before tests..."
         DEVICE_UDID=$(idevice_id -l | head -1)
+        if [ -z "$DEVICE_UDID" ]; then
+          echo "❌ Device disconnected before tests!"
+          echo "💡 Please ensure device stays connected and unlocked"
+          exit 1
+        fi
+        
         export DEVICE_UDID
         
         echo "🧪 Running iOS tests with configuration:"
@@ -146,20 +182,53 @@ jobs:
         echo "iOS: $PLATFORM_VERSION"
         echo "Team ID: $TEAM_ID"
         
-        # Check if we have the iOS test files
+        # List available test files
+        echo "📁 Available test files:"
+        ls -la *.py || echo "No Python files in root"
+        ls -la tests/*.py || echo "No test files in tests/"
+        
+        # Run simple test first
         if [ -f "test_ios_simple.py" ]; then
-          echo "Running simple iOS test..."
+          echo "🚀 Running simple iOS test..."
+          echo "----------------------------------------"
           poetry run python test_ios_simple.py
+          TEST_EXIT_CODE=$?
+          echo "----------------------------------------"
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ Simple test passed!"
+          else
+            echo "❌ Simple test failed with exit code $TEST_EXIT_CODE"
+            echo "📸 Checking for screenshots..."
+            ls -la *.png || echo "No screenshots found"
+          fi
         else
-          echo "test_ios_simple.py not found, skipping simple test"
+          echo "⚠️ test_ios_simple.py not found, skipping simple test"
         fi
         
+        # Run comprehensive test
         if [ -f "tests/test_login_ios.py" ]; then
-          echo "Running comprehensive iOS test..."
-          poetry run pytest tests/test_login_ios.py::TestLiveboardiOS::test_click_composable_ios -v
+          echo "🧪 Running comprehensive iOS test..."
+          echo "----------------------------------------"
+          poetry run pytest tests/test_login_ios.py::TestLiveboardiOS::test_click_composable_ios -v -s
+          PYTEST_EXIT_CODE=$?
+          echo "----------------------------------------"
+          if [ $PYTEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ Comprehensive test passed!"
+          else
+            echo "❌ Comprehensive test failed with exit code $PYTEST_EXIT_CODE"
+          fi
         else
-          echo "tests/test_login_ios.py not found, skipping comprehensive test"
+          echo "⚠️ tests/test_login_ios.py not found, skipping comprehensive test"
         fi
+        
+        # Show final results
+        echo "📊 Test Results Summary:"
+        echo "- Simple test: ${TEST_EXIT_CODE:-'skipped'}"
+        echo "- Comprehensive test: ${PYTEST_EXIT_CODE:-'skipped'}"
+        
+        # List all screenshots
+        echo "📸 Screenshots generated:"
+        ls -la *.png || echo "No screenshots found"
         
     - name: Upload test artifacts
       uses: actions/upload-artifact@v4
