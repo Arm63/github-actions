@@ -4,9 +4,27 @@ Welcome to my GitHub Actions learning journey! This repository contains practice
 
 ## 📚 **Learning Materials**
 
-- [`GITHUB_ACTIONS_LEARNING.md`](GITHUB_ACTIONS_LEARNING.md) - Complete guide covering all GitHub Actions concepts
-- [`PRACTICE_EXERCISES.md`](PRACTICE_EXERCISES.md) - 10 hands-on exercises with step-by-step solutions
-- [`yaml-practice.yml`](yaml-practice.yml) - YAML syntax examples and patterns
+- [`docs/GITHUB_ACTIONS_LEARNING.md`](docs/GITHUB_ACTIONS_LEARNING.md) - Complete guide covering all GitHub Actions concepts
+- [`docs/PRACTICE_EXERCISES.md`](docs/PRACTICE_EXERCISES.md) - 10 hands-on exercises with step-by-step solutions
+- [`examples/yaml-practice.yml`](examples/yaml-practice.yml) - YAML syntax examples and patterns
+
+## 📁 **Repository Structure**
+
+```
+github-actions/
+├── .github/workflows/          # GitHub Actions workflows
+│   ├── hello-world.yml         # Basic example workflow
+│   └── ios-test-basic.yml      # Advanced iOS testing workflow
+├── docs/                       # Learning materials
+│   ├── GITHUB_ACTIONS_LEARNING.md
+│   └── PRACTICE_EXERCISES.md
+├── examples/                   # Example configurations
+│   └── yaml-practice.yml       # YAML syntax examples
+├── exercises/                  # Your practice exercises (create here)
+├── pyproject.toml             # Python project configuration
+├── README.md                  # This file
+└── .gitignore                 # Git ignore rules
+```
 
 ## 🔧 **Practice Workflows**
 
@@ -14,11 +32,11 @@ Welcome to my GitHub Actions learning journey! This repository contains practice
 - [`.github/workflows/hello-world.yml`](.github/workflows/hello-world.yml) - Simple "Hello World" workflow
 - [`.github/workflows/ios-test-basic.yml`](.github/workflows/ios-test-basic.yml) - Advanced iOS testing workflow
 
-### **Exercise Workflows** (Create these as you practice)
-- `.github/workflows/system-info.yml` - Exercise 1: Basic workflow
-- `.github/workflows/multi-job.yml` - Exercise 2: Multi-job workflow
-- `.github/workflows/matrix-test.yml` - Exercise 3: Matrix strategy
-- `.github/workflows/conditional.yml` - Exercise 4: Conditional execution
+### **Exercise Workflows** (Create these in `exercises/` folder)
+- `exercises/system-info.yml` - Exercise 1: Basic workflow
+- `exercises/multi-job.yml` - Exercise 2: Multi-job workflow
+- `exercises/matrix-test.yml` - Exercise 3: Matrix strategy
+- `exercises/conditional.yml` - Exercise 4: Conditional execution
 - And more...
 
 ## 🎯 **Learning Progress**
@@ -71,7 +89,7 @@ Welcome to my GitHub Actions learning journey! This repository contains practice
    - Check the logs and results
 
 3. **Start with Exercise 1**
-   - Read [`PRACTICE_EXERCISES.md`](PRACTICE_EXERCISES.md)
+   - Read [`docs/PRACTICE_EXERCISES.md`](docs/PRACTICE_EXERCISES.md)
    - Create `.github/workflows/system-info.yml`
    - Push and test
 
