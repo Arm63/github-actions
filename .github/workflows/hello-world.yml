@@ -2,10 +2,11 @@ name: Hello World - My First Workflow
 
 # When should this workflow run?
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  # Commented out automatic triggers - only manual runs allowed
+  # push:
+  #   branches: [ main, master ]
+  # pull_request:
+  #   branches: [ main, master ]
   workflow_dispatch:  # Allows manual trigger
 
 jobs:

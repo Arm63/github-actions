@@ -1,10 +1,11 @@
 name: iOS Basic Tests
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  # Commented out automatic triggers - only manual runs allowed
+  # push:
+  #   branches: [ main, master ]
+  # pull_request:
+  #   branches: [ main, master ]
   workflow_dispatch:
     inputs:
       test_type:
