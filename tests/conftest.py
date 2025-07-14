@@ -47,7 +47,11 @@ def ios_driver():
     options.set_capability("xcuitestTeamId", capabilities['xcuitestTeamId'])
     options.set_capability("updateWDABundleId", capabilities['updateWDABundleId'])
     
-    driver = webdriver.Remote('http://localhost:4723/wd/hub', options.to_capabilities())
+    # Support different Appium ports for parallel execution
+    appium_port = os.getenv('APPIUM_PORT', '4723')  # Default to 4723 for iOS
+    appium_url = f'http://localhost:{appium_port}/wd/hub'
+    
+    driver = webdriver.Remote(appium_url, options.to_capabilities())
     driver.implicitly_wait(10)
     
     print(f"✅ Connected to iOS device: {device_name} (UDID: {device_udid})")
@@ -89,7 +93,11 @@ def driver():
     options = UiAutomator2Options()
     options.load_capabilities(capabilities)
     
-    driver = webdriver.Remote('http://localhost:4723', options=options)
+    # Support different Appium ports for parallel execution
+    appium_port = os.getenv('APPIUM_PORT', '4724')  # Default to 4724 for Android
+    appium_url = f'http://localhost:{appium_port}'
+    
+    driver = webdriver.Remote(appium_url, options=options)
     driver.implicitly_wait(10)
     
     print(f"✅ Connected to Android device: {device_name} (UDID: {device_udid})")

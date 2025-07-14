@@ -1,0 +1,206 @@
+name: Mobile Device Testing (Parallel)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      run_ios:
+        description: 'Run iOS tests'
+        required: false
+        default: 'true'
+        type: boolean
+      run_android:
+        description: 'Run Android tests'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  ios-real-device-test:
+    if: ${{ github.event.inputs.run_ios != 'false' }}
+    runs-on: self-hosted
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup iOS Environment
+      run: |
+        echo "🍎 Setting up iOS testing environment..."
+        
+        # Kill any existing Appium processes
+        pkill -f appium || true
+        sleep 2
+        
+        # Check iOS device connection
+        if ! command -v idevice_id &> /dev/null; then
+          echo "❌ libimobiledevice not installed"
+          exit 1
+        fi
+        
+        DEVICE_COUNT=$(idevice_id -l 2>/dev/null | wc -l)
+        if [ "$DEVICE_COUNT" -eq 0 ]; then
+          echo "❌ No iOS device connected"
+          exit 1
+        fi
+        
+        DEVICE_UDID=$(idevice_id -l | head -1)
+        echo "✅ iOS device connected: $DEVICE_UDID"
+        echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
+        
+    - name: Setup Python and Dependencies
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        poetry install --no-root
+        
+    - name: Start Appium Server (iOS - Port 4723)
+      run: |
+        appium --log appium-ios.log --log-level info --port 4723 &
+        APPIUM_PID=$!
+        echo "APPIUM_PID=$APPIUM_PID" >> $GITHUB_ENV
+        
+        # Wait for Appium to start
+        sleep 5
+        curl -s http://localhost:4723/status | grep -q '"ready":true' || exit 1
+        echo "✅ Appium server started for iOS (Port 4723)"
+        
+    - name: Run iOS Tests
+      env:
+        DEVICE_NAME: 'iPhone SE'
+        PLATFORM_VERSION: '17.2'
+        TEAM_ID: '2FHJSTZ57U'
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        export DEVICE_UDID
+        
+        echo "🧪 Running iOS tests..."
+        
+        # Run iOS tests
+        if [ -f "tests/test_login_ios.py" ]; then
+          poetry run pytest tests/test_login_ios.py::TestLiveboardiOS::test_click_composable_ios -v -s
+        else
+          echo "⚠️ iOS test file not found"
+        fi
+        
+    - name: Stop Appium Server
+      if: always()
+      run: |
+        if [ ! -z "$APPIUM_PID" ]; then
+          kill $APPIUM_PID || true
+        fi
+        pkill -f "appium.*4723" || true
+        
+    - name: Upload iOS Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ios-test-results
+        path: |
+          *.png
+          appium-ios.log
+
+  android-real-device-test:
+    if: ${{ github.event.inputs.run_android != 'false' }}
+    runs-on: self-hosted
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Android Environment
+      run: |
+        echo "🤖 Setting up Android testing environment..."
+        
+        # Check ADB availability
+        if ! command -v adb &> /dev/null; then
+          echo "❌ ADB not installed"
+          exit 1
+        fi
+        
+        # Check Android device connection
+        DEVICE_COUNT=$(adb devices | grep -v "List of devices" | grep -c "device")
+        if [ "$DEVICE_COUNT" -eq 0 ]; then
+          echo "❌ No Android device connected"
+          exit 1
+        fi
+        
+        ANDROID_DEVICE_UDID=$(adb devices | grep -v "List of devices" | grep "device" | head -1 | awk '{print $1}')
+        echo "✅ Android device connected: $ANDROID_DEVICE_UDID"
+        echo "ANDROID_DEVICE_UDID=$ANDROID_DEVICE_UDID" >> $GITHUB_ENV
+        
+    - name: Setup Python and Dependencies
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        poetry install --no-root
+        
+    - name: Start Appium Server (Android - Port 4724)
+      run: |
+        # Use different port for Android to avoid conflicts
+        appium --log appium-android.log --log-level info --port 4724 &
+        APPIUM_PID=$!
+        echo "APPIUM_PID=$APPIUM_PID" >> $GITHUB_ENV
+        
+        # Wait for Appium to start
+        sleep 5
+        curl -s http://localhost:4724/status | grep -q '"ready":true' || exit 1
+        echo "✅ Appium server started for Android (Port 4724)"
+        
+    - name: Run Android Tests
+      env:
+        ANDROID_DEVICE_NAME: 'Android Device'
+        ANDROID_PLATFORM_VERSION: '11.0'
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        export ANDROID_DEVICE_UDID
+        
+        echo "🧪 Running Android tests..."
+        
+        # Run Android tests
+        if [ -f "tests/test_login_android.py" ]; then
+          poetry run pytest tests/test_login_android.py::test_click_login_button_only -v -s
+          poetry run pytest tests/test_login_android.py::test_click_composable -v -s
+        else
+          echo "⚠️ Android test file not found"
+        fi
+        
+    - name: Stop Appium Server
+      if: always()
+      run: |
+        if [ ! -z "$APPIUM_PID" ]; then
+          kill $APPIUM_PID || true
+        fi
+        pkill -f "appium.*4724" || true
+        
+    - name: Upload Android Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: android-test-results
+        path: |
+          *.png
+          appium-android.log
+
+  summary:
+    needs: [ios-real-device-test, android-real-device-test]
+    runs-on: self-hosted
+    if: always()
+    
+    steps:
+    - name: Test Results Summary
+      run: |
+        echo "📊 Mobile Device Testing Summary"
+        echo "================================"
+        echo "iOS Tests: ${{ needs.ios-real-device-test.result }}"
+        echo "Android Tests: ${{ needs.android-real-device-test.result }}"
+        
+        if [ "${{ needs.ios-real-device-test.result }}" == "success" ] && [ "${{ needs.android-real-device-test.result }}" == "success" ]; then
+          echo "🎉 All mobile device tests passed!"
+        else
+          echo "⚠️ Some tests failed or were skipped"
+          exit 1
+        fi 
