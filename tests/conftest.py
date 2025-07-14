@@ -47,7 +47,7 @@ def ios_driver():
     options.set_capability("xcuitestTeamId", capabilities['xcuitestTeamId'])
     options.set_capability("updateWDABundleId", capabilities['updateWDABundleId'])
     
-    driver = webdriver.Remote('http://localhost:4723', options=options)
+    driver = webdriver.Remote('http://localhost:4723/wd/hub', options.to_capabilities())
     driver.implicitly_wait(10)
     
     print(f"✅ Connected to iOS device: {device_name} (UDID: {device_udid})")
@@ -59,10 +59,52 @@ def ios_driver():
     print("✅ iOS driver session ended")
 
 
+@pytest.fixture(scope="session")
+def driver():
+    """Create Android driver for testing."""
+    # Get device configuration from environment
+    device_udid = os.getenv('ANDROID_DEVICE_UDID', 'auto')
+    device_name = os.getenv('ANDROID_DEVICE_NAME', 'Android Device')
+    platform_version = os.getenv('ANDROID_PLATFORM_VERSION', '11.0')
+    
+    # Configure Android capabilities
+    capabilities = {
+        'platformName': 'Android',
+        'platformVersion': platform_version,
+        'deviceName': device_name,
+        'udid': device_udid,
+        'appPackage': 'com.inconceptlabs.liveboard',
+        'appActivity': '.pages.activities.LaunchActivity',
+        'automationName': 'UiAutomator2',
+        'newCommandTimeout': 600,
+        'uiautomator2ServerLaunchTimeout': 180000,
+        'uiautomator2ServerInstallTimeout': 180000,
+        'autoGrantPermissions': True,
+        'noReset': True,
+        'fullReset': False
+    }
+    
+    from appium.options.android.uiautomator2.base import UiAutomator2Options
+    
+    options = UiAutomator2Options()
+    options.load_capabilities(capabilities)
+    
+    driver = webdriver.Remote('http://localhost:4723', options=options)
+    driver.implicitly_wait(10)
+    
+    print(f"✅ Connected to Android device: {device_name} (UDID: {device_udid})")
+    
+    yield driver
+    
+    # Cleanup
+    driver.quit()
+    print("✅ Android driver session ended")
+
+
 def take_screenshot(driver, name="screenshot"):
     """Take a screenshot and save it with timestamp."""
     timestamp = int(time.time())
-    filename = f"ios_test_{name}_{timestamp}.png"
+    filename = f"android_test_{name}_{timestamp}.png"
     driver.save_screenshot(filename)
     print(f"📸 Screenshot saved: {filename}")
     return filename 
