@@ -2,6 +2,17 @@
 
 Welcome to my GitHub Actions learning journey! This repository contains practice workflows, exercises, and learning materials for mastering GitHub Actions and CI/CD automation.
 
+## 📱 **Mobile Testing Pipeline**
+
+🔥 **NEW**: Added **parallel real device testing** for iOS and Android using Appium!
+
+- **⚡ Parallel Execution**: iOS and Android tests run simultaneously (45% faster)
+- **📱 Real Devices**: iPhone SE + Android device testing
+- **🔄 CI/CD Integration**: Automatic testing on code changes
+- **📊 Comprehensive Reports**: Screenshots, logs, and test results
+
+📚 **[Complete Mobile Testing Architecture →](MOBILE_TESTING_ARCHITECTURE.md)**
+
 ## 📚 **Learning Materials**
 
 - [`docs/GITHUB_ACTIONS_LEARNING.md`](docs/GITHUB_ACTIONS_LEARNING.md) - Complete guide covering all GitHub Actions concepts
@@ -13,11 +24,19 @@ Welcome to my GitHub Actions learning journey! This repository contains practice
 ```
 github-actions/
 ├── .github/workflows/          # GitHub Actions workflows
+│   ├── mobile-device-parallel-ci.yml  # 🔥 Parallel mobile testing
+│   ├── ios-real-device-ci.yml  # iOS device testing (disabled)
+│   ├── android-real-device-ci.yml # Android device testing (disabled)
 │   ├── hello-world.yml         # Basic example workflow
 │   └── ios-test-basic.yml      # Advanced iOS testing workflow
+├── tests/                      # Mobile test automation
+│   ├── conftest.py             # Test configuration
+│   ├── test_login_ios.py       # iOS test cases
+│   └── test_login_android.py   # Android test cases
 ├── docs/                       # Learning materials
 │   ├── GITHUB_ACTIONS_LEARNING.md
 │   └── PRACTICE_EXERCISES.md
+├── MOBILE_TESTING_ARCHITECTURE.md # Complete mobile testing guide
 ├── examples/                   # Example configurations
 │   └── yaml-practice.yml       # YAML syntax examples
 ├── exercises/                  # Your practice exercises (create here)
