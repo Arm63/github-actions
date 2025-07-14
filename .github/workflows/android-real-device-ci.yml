@@ -1,0 +1,305 @@
+name: Android Real Device Testing
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      device_name:
+        description: 'Device name (e.g., Samsung Galaxy S21)'
+        required: false
+        default: 'Android Device'
+      platform_version:
+        description: 'Android version (e.g., 13)'
+        required: false
+        default: '13'
+      api_level:
+        description: 'Android API level (e.g., 33)'
+        required: false
+        default: '33'
+
+jobs:
+  android-real-device-test:
+    runs-on: self-hosted  # Requires your macOS machine as runner
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check Android device connection
+      run: |
+        echo "🔍 Checking Android device setup..."
+        
+        # Run debug script if available
+        if [ -f "debug_android_device.sh" ]; then
+          echo "🐛 Running Android device debug script..."
+          ./debug_android_device.sh
+          echo "🐛 Debug script completed"
+          echo "----------------------------------------"
+        fi
+        
+        # Check if adb is installed
+        if ! command -v adb &> /dev/null; then
+          echo "❌ ADB not installed"
+          echo "💡 Install with: brew install android-platform-tools"
+          exit 1
+        fi
+        
+        echo "✅ ADB is installed: $(adb --version | head -1)"
+        
+        # Ensure PATH includes Android tools
+        export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin"
+        
+        # Start ADB server
+        adb start-server
+        sleep 2
+        
+        # List all connected devices with detailed info
+        echo "📱 Checking connected Android devices..."
+        adb devices -l
+        
+        # Get device count
+        DEVICE_COUNT=$(adb devices | grep -v "List of devices" | grep -c "device")
+        echo "Found $DEVICE_COUNT Android device(s)"
+        
+        if [ "$DEVICE_COUNT" -eq 0 ]; then
+          echo "❌ No Android device connected via USB"
+          echo "💡 Please:"
+          echo "   1. Connect your Android device via USB cable"
+          echo "   2. Enable Developer Options on your device"
+          echo "   3. Enable USB Debugging in Developer Options"
+          echo "   4. Allow USB debugging when prompted on device"
+          echo "   5. Check cable connection"
+          
+          # Additional debugging
+          echo "🔍 USB debugging info:"
+          lsusb | grep -i "android\|samsung\|google\|pixel" || echo "No Android devices found in USB"
+          
+          # Try to fix common issues
+          echo "🔧 Attempting to fix device connection issues..."
+          
+          # Restart ADB server
+          adb kill-server
+          sleep 2
+          adb start-server
+          sleep 2
+          
+          # Wait a moment and try again
+          DEVICE_COUNT_RETRY=$(adb devices | grep -v "List of devices" | grep -c "device")
+          if [ "$DEVICE_COUNT_RETRY" -eq 0 ]; then
+            echo "❌ Still no device found after retry"
+            echo "🔍 Troubleshooting:"
+            echo "   - Check USB cable connection"
+            echo "   - Enable 'Transfer files' mode on device"
+            echo "   - Revoke USB debugging authorizations and try again"
+            exit 1
+          else
+            echo "✅ Device found after retry!"
+          fi
+        fi
+        
+        # Get device info
+        DEVICE_UDID=$(adb devices | grep -v "List of devices" | grep "device" | head -1 | awk '{print $1}')
+        echo "✅ Android device connected: $DEVICE_UDID"
+        
+        # Check device info
+        echo "📋 Device information:"
+        adb -s "$DEVICE_UDID" shell getprop ro.product.model || echo "Could not get device name"
+        adb -s "$DEVICE_UDID" shell getprop ro.build.version.release || echo "Could not get Android version"
+        adb -s "$DEVICE_UDID" shell getprop ro.build.version.sdk || echo "Could not get API level"
+        adb -s "$DEVICE_UDID" shell getprop ro.product.manufacturer || echo "Could not get manufacturer"
+        
+        # Check if Liveboard app is installed
+        LIVEBOARD_PACKAGE="com.inconceptlabs.liveboard"
+        if adb -s "$DEVICE_UDID" shell pm list packages | grep -q "$LIVEBOARD_PACKAGE"; then
+          echo "✅ Liveboard app is installed"
+        else
+          echo "⚠️ Liveboard app is not installed"
+          echo "💡 Please install the Liveboard app on your device"
+        fi
+        
+    - name: Setup Python environment
+      run: |
+        echo "Using system Python:"
+        python3 --version
+        which python3
+        
+        # Ensure pip is available
+        python3 -m ensurepip --upgrade || true
+        
+    - name: Install Poetry
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "Installing Poetry..."
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        else
+          echo "Poetry already installed: $(poetry --version)"
+        fi
+        
+    - name: Install Python dependencies
+      run: |
+        # Check if archive exists
+        if [ -d "archive/android-testing-project" ]; then
+          echo "Copying Android project files from archive..."
+          cp -r archive/android-testing-project/* .
+        else
+          echo "Archive not found, using existing files..."
+        fi
+        
+        # Ensure PATH includes Poetry
+        export PATH="$HOME/.local/bin:$PATH"
+        
+        # Install dependencies
+        poetry install --no-root
+        
+    - name: Check Appium setup
+      run: |
+        if ! command -v appium &> /dev/null; then
+          echo "❌ Appium not installed"
+          echo "💡 Run complete setup first"
+          exit 1
+        fi
+        
+        echo "✅ Appium version: $(appium --version)"
+        
+        # List available drivers
+        echo "- Listing available drivers"
+        appium driver list
+        
+        # Check UiAutomator2 driver installation
+        echo "Checking UiAutomator2 driver..."
+        
+        # Save driver list to file and check
+        appium driver list --installed > /tmp/drivers.txt 2>&1
+        if grep -q "uiautomator2" /tmp/drivers.txt; then
+          UIAUTOMATOR2_VERSION=$(grep "uiautomator2" /tmp/drivers.txt | head -1)
+          echo "✅ UiAutomator2 driver already installed: $UIAUTOMATOR2_VERSION"
+        else
+          echo "Installing UiAutomator2 driver..."
+          appium driver install uiautomator2
+        fi
+        
+    - name: Start Appium server
+      run: |
+        # Kill any existing Appium processes
+        pkill -f appium || true
+        sleep 2
+        
+        # Start Appium in background
+        appium --log appium.log --log-level debug &
+        APPIUM_PID=$!
+        echo "APPIUM_PID=$APPIUM_PID" >> $GITHUB_ENV
+        
+        # Wait for Appium to start
+        sleep 5
+        
+        # Check if Appium started
+        if ! kill -0 $APPIUM_PID 2>/dev/null; then
+          echo "❌ Failed to start Appium server"
+          exit 1
+        fi
+        
+        echo "✅ Appium server started (PID: $APPIUM_PID)"
+        
+    - name: Run Android real device tests
+      env:
+        DEVICE_NAME: ${{ github.event.inputs.device_name || 'Android Device' }}
+        PLATFORM_VERSION: ${{ github.event.inputs.platform_version || '13' }}
+        API_LEVEL: ${{ github.event.inputs.api_level || '33' }}
+      run: |
+        # Ensure PATH includes Poetry
+        export PATH="$HOME/.local/bin:$PATH"
+        
+        # Double-check device connection before tests
+        echo "🔍 Re-checking device connection before tests..."
+        DEVICE_UDID=$(adb devices | grep -v "List of devices" | grep "device" | head -1 | awk '{print $1}')
+        if [ -z "$DEVICE_UDID" ]; then
+          echo "❌ Device disconnected before tests!"
+          echo "💡 Please ensure device stays connected and unlocked"
+          exit 1
+        fi
+        
+        export DEVICE_UDID
+        
+        echo "🧪 Running Android tests with configuration:"
+        echo "Device: $DEVICE_NAME"
+        echo "UDID: $DEVICE_UDID"
+        echo "Android: $PLATFORM_VERSION"
+        echo "API Level: $API_LEVEL"
+        
+        # List available test files
+        echo "📁 Available test files:"
+        ls -la *.py || echo "No Python files in root"
+        ls -la tests/*.py || echo "No test files in tests/"
+        
+        # Run simple test first
+        if [ -f "test_android_simple.py" ]; then
+          echo "🚀 Running simple Android test..."
+          echo "----------------------------------------"
+          poetry run python test_android_simple.py
+          TEST_EXIT_CODE=$?
+          echo "----------------------------------------"
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ Simple test passed!"
+          else
+            echo "❌ Simple test failed with exit code $TEST_EXIT_CODE"
+            echo "📸 Checking for screenshots..."
+            ls -la *.png || echo "No screenshots found"
+          fi
+        else
+          echo "⚠️ test_android_simple.py not found, skipping simple test"
+        fi
+        
+        # Run comprehensive test
+        if [ -f "tests/test_login_android.py" ]; then
+          echo "🧪 Running comprehensive Android test..."
+          echo "----------------------------------------"
+          poetry run pytest tests/test_login_android.py::TestLiveboardAndroid::test_click_composable_android -v -s
+          PYTEST_EXIT_CODE=$?
+          echo "----------------------------------------"
+          if [ $PYTEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ Comprehensive test passed!"
+          else
+            echo "❌ Comprehensive test failed with exit code $PYTEST_EXIT_CODE"
+          fi
+        else
+          echo "⚠️ tests/test_login_android.py not found, skipping comprehensive test"
+        fi
+        
+        # Show final results
+        echo "📊 Test Results Summary:"
+        echo "- Simple test: ${TEST_EXIT_CODE:-'skipped'}"
+        echo "- Comprehensive test: ${PYTEST_EXIT_CODE:-'skipped'}"
+        
+        # List all screenshots
+        echo "📸 Screenshots generated:"
+        ls -la *.png || echo "No screenshots found"
+        
+        # List any XML files (page sources)
+        echo "📄 XML files generated:"
+        ls -la *.xml || echo "No XML files found"
+        
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: android-test-results
+        path: |
+          *.png
+          *.xml
+          appium.log
+          test-results/
+          android_device_info.env
+          
+    - name: Stop Appium server
+      if: always()
+      run: |
+        if [ ! -z "$APPIUM_PID" ]; then
+          kill $APPIUM_PID || true
+        fi
+        pkill -f appium || true 
