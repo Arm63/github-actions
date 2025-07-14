@@ -1,6 +1,10 @@
 name: iOS Real Device Testing
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       device_name:
