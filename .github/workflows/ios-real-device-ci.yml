@@ -1,10 +1,11 @@
 name: iOS Real Device Testing
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  # Disabled - use mobile-device-parallel-ci.yml instead
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
   workflow_dispatch:
     inputs:
       device_name:
