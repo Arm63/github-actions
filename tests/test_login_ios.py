@@ -265,8 +265,6 @@ class TestLiveboardiOS:
         """Test clicking composable elements in iOS Liveboard app."""
         print("\n🎯 Starting composable click test...")
         
-        test_name = "iOS Composable Click Test"
-        self.notifier.notify_test_start(test_name, self.device_name, self.platform_version)
         start_time = time.time()
         
         # Take initial screenshot
@@ -309,20 +307,17 @@ class TestLiveboardiOS:
             print(f"❌ Error during composable click test: {e}")
             error_screenshot = self.take_screenshot("composable_error")
             
-            # Send failure notification
             duration = time.time() - start_time
-            self.notifier.notify_test_failure(test_name, self.device_name, self.platform_version, 
-                                            duration, str(e), error_screenshot)
+            print(f"❌ Test failed after {duration:.2f} seconds: {e}")
             raise
         
         # Final screenshot
         final_screenshot = self.take_screenshot("composable_test_end")
         print("✅ Composable click test completed!")
         
-        # Send success notification
+        # Test completed successfully
         duration = time.time() - start_time
-        self.notifier.notify_test_success(test_name, self.device_name, self.platform_version, 
-                                        duration, final_screenshot)
+        print(f"✅ Test completed successfully in {duration:.2f} seconds!")
 
 
 if __name__ == "__main__":
