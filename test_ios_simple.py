@@ -23,12 +23,16 @@ def test_ios_connection():
     print(f"📱 iOS: {platform_version}")
     print(f"👥 Team ID: {team_id}")
     
+    start_time = time.time()
+    
     try:
         # Try to import and use Appium
         from appium import webdriver
+        from appium.webdriver.webdriver import WebDriver
         from appium.webdriver.common.appiumby import AppiumBy
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.remote.remote_connection import RemoteConnection
         
         # Configure iOS capabilities
         capabilities = {
@@ -67,7 +71,7 @@ def test_ios_connection():
         options.set_capability("showXcodeLog", True)
         options.set_capability("usePrebuiltWDA", True)
         
-        driver = webdriver.Remote('http://localhost:4723', options=options)
+        driver = WebDriver('http://localhost:4723', options=options)
         driver.implicitly_wait(10)
         
         print("✅ Connected to iOS device successfully!")
@@ -143,15 +147,22 @@ def test_ios_connection():
         driver.quit()
         print("✅ Test completed successfully!")
         
+        duration = time.time() - start_time
+        print(f"✅ Test completed successfully in {duration:.2f} seconds!")
+        
         return True
         
     except ImportError as e:
         print(f"❌ Import error: {e}")
         print("Make sure Appium Python client is installed: pip install Appium-Python-Client")
+        duration = time.time() - start_time
+        print(f"❌ Test failed in {duration:.2f} seconds")
         return False
         
     except Exception as e:
         print(f"❌ Test failed: {e}")
+        duration = time.time() - start_time
+        print(f"❌ Test failed in {duration:.2f} seconds")
         return False
 
 

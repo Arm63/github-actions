@@ -6,6 +6,8 @@ from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+import sys
+sys.path.append('..')
 
 
 class TestLiveboardiOS:
@@ -18,6 +20,10 @@ class TestLiveboardiOS:
         device_name = os.getenv('DEVICE_NAME', 'iPhone SE')
         platform_version = os.getenv('PLATFORM_VERSION', '17.2')
         team_id = os.getenv('TEAM_ID', '2FHJSTZ57U')
+        
+        # Store device info
+        self.device_name = device_name
+        self.platform_version = platform_version
         
         # Configure iOS capabilities using dictionary
         capabilities = {
@@ -52,7 +58,8 @@ class TestLiveboardiOS:
         options.set_capability("xcuitestTeamId", capabilities['xcuitestTeamId'])
         options.set_capability("updateWDABundleId", capabilities['updateWDABundleId'])
         
-        self.driver = webdriver.Remote(
+        from appium.webdriver.webdriver import WebDriver
+        self.driver = WebDriver(
             command_executor='http://localhost:4723',
             options=options
         )
@@ -258,8 +265,12 @@ class TestLiveboardiOS:
         """Test clicking composable elements in iOS Liveboard app."""
         print("\n🎯 Starting composable click test...")
         
+        test_name = "iOS Composable Click Test"
+        self.notifier.notify_test_start(test_name, self.device_name, self.platform_version)
+        start_time = time.time()
+        
         # Take initial screenshot
-        self.take_screenshot("composable_test_start")
+        screenshot_path = self.take_screenshot("composable_test_start")
         
         # Wait for app to load
         time.sleep(3)
@@ -296,12 +307,22 @@ class TestLiveboardiOS:
             
         except Exception as e:
             print(f"❌ Error during composable click test: {e}")
-            self.take_screenshot("composable_error")
+            error_screenshot = self.take_screenshot("composable_error")
+            
+            # Send failure notification
+            duration = time.time() - start_time
+            self.notifier.notify_test_failure(test_name, self.device_name, self.platform_version, 
+                                            duration, str(e), error_screenshot)
             raise
         
         # Final screenshot
-        self.take_screenshot("composable_test_end")
+        final_screenshot = self.take_screenshot("composable_test_end")
         print("✅ Composable click test completed!")
+        
+        # Send success notification
+        duration = time.time() - start_time
+        self.notifier.notify_test_success(test_name, self.device_name, self.platform_version, 
+                                        duration, final_screenshot)
 
 
 if __name__ == "__main__":

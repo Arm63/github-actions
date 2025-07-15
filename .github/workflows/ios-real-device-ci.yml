@@ -141,6 +141,15 @@ jobs:
         # Install dependencies
         poetry install --no-root
         
+        # Test notification system setup
+        if [ -n "$SLACK_WEBHOOK_URL" ]; then
+          echo "🔔 Setting up Slack notifications..."
+          poetry run python scripts/smart_notifications.py --setup-slack "$SLACK_WEBHOOK_URL" --channel "$SLACK_CHANNEL"
+          poetry run python scripts/smart_notifications.py --test-slack
+        else
+          echo "⚠️ Slack notifications disabled (SLACK_WEBHOOK_URL not set)"
+        fi
+        
     - name: Check Appium setup
       run: |
         if ! command -v appium &> /dev/null; then
@@ -195,6 +204,8 @@ jobs:
         DEVICE_NAME: ${{ github.event.inputs.device_name || 'iPhone SE' }}
         PLATFORM_VERSION: ${{ github.event.inputs.platform_version || '17.2' }}
         TEAM_ID: ${{ github.event.inputs.team_id || '2FHJSTZ57U' }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL || '#testing' }}
       run: |
         # Ensure PATH includes Poetry
         export PATH="$HOME/.local/bin:$PATH"
