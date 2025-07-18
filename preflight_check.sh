@@ -3,7 +3,7 @@
 # Pre-flight Check Script for Mobile Automation
 # Quick verification that everything is ready for testing
 
-set -e
+# set -e  # Do NOT use 'set -e' here, as we want to run all checks and report all failures before exiting.
 
 # Colors for output
 RED='\033[0;31m'
@@ -99,8 +99,8 @@ fi
 # 5. Check Appium drivers
 print_status "Checking Appium drivers..."
 total_checks=$((total_checks + 1))
-DRIVERS_OUTPUT="$(appium driver list)"
-if [[ "$DRIVERS_OUTPUT" == *"uiautomator2"* && "$DRIVERS_OUTPUT" == *"xcuitest"* ]]; then
+DRIVERS_OUTPUT="$(appium driver list 2>&1)"
+if echo "$DRIVERS_OUTPUT" | grep -q "uiautomator2" && echo "$DRIVERS_OUTPUT" | grep -q "xcuitest"; then
     print_success "Appium drivers: UiAutomator2 and XCUITest (present in driver list)"
     passed_checks=$((passed_checks + 1))
 else
