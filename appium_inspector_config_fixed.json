@@ -1,0 +1,19 @@
+{
+  "platformName": "iOS",
+  "platformVersion": "17.2",
+  "deviceName": "iPhone SE",
+  "udid": "00008030-000151561A85402E",
+  "bundleId": "com.inconceptlabs.liveboard",
+  "automationName": "XCUITest",
+  "newCommandTimeout": 600,
+  "wdaLaunchTimeout": 180000,
+  "wdaConnectionTimeout": 180000,
+  "xcodeOrgId": "2FHJSTZ57U",
+  "xcodeSigningId": "iPhone Developer",
+  "updatedWDABundleId": "com.facebook.WebDriverAgentRunner",
+  "useNewWDA": false,
+  "usePrebuiltWDA": false,
+  "showXcodeLog": true,
+  "realDeviceLogger": "/usr/local/bin/deviceconsole",
+  "preventWDAAttachments": true
+} 

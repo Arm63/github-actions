@@ -1,0 +1,16 @@
+{
+  "platformName": "iOS",
+  "platformVersion": "17.2",
+  "deviceName": "iPhone SE",
+  "udid": "00008030-000151561A85402E",
+  "bundleId": "com.inconceptlabs.liveboard",
+  "automationName": "XCUITest",
+  "newCommandTimeout": 600,
+  "wdaLaunchTimeout": 180000,
+  "wdaConnectionTimeout": 180000,
+  "xcuitestTeamId": "2FHJSTZ57U",
+  "updateWDABundleId": "2FHJSTZ57U.WebDriverAgentRunner",
+  "useNewWDA": true,
+  "wdaLocalPort": 8100,
+  "mjpegServerPort": 9100
+} 

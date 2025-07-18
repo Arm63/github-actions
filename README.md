@@ -1,166 +1,296 @@
-# 🚀 GitHub Actions Practice Repository
+# Mobile Automation Testing Framework
 
-Welcome to my GitHub Actions learning journey! This repository contains practice workflows, exercises, and learning materials for mastering GitHub Actions and CI/CD automation.
+A comprehensive mobile automation testing framework for iOS and Android applications using Appium, Python, and Poetry.
 
-## 📱 **Mobile Testing Pipeline**
+## 🚀 Features
 
-🔥 **NEW**: Added **parallel real device testing** for iOS and Android using Appium!
+- **Parallel Testing**: Run iOS and Android tests simultaneously
+- **Real Device Support**: Test on actual iOS and Android devices
+- **Comprehensive Setup**: Automated environment setup script
+- **Cross-Platform**: Support for both iOS and Android platforms
+- **Modern Stack**: Uses Appium 2.x, Python 3.x, and Poetry
 
-- **⚡ Parallel Execution**: iOS and Android tests run simultaneously (45% faster)
-- **📱 Real Devices**: iPhone SE + Android device testing
-- **🔄 CI/CD Integration**: Automatic testing on code changes
-- **📊 Comprehensive Reports**: Screenshots, logs, and test results
+## 📋 Prerequisites
 
-📚 **[Complete Mobile Testing Architecture →](MOBILE_TESTING_ARCHITECTURE.md)**
+- **macOS** (required for iOS development)
+- **Xcode** (for iOS automation)
+- **Android Studio** (for Android SDK)
+- **Physical iOS and Android devices** (for real device testing)
 
-## 📚 **Learning Materials**
+## 🛠️ Quick Setup
 
-- [`docs/GITHUB_ACTIONS_LEARNING.md`](docs/GITHUB_ACTIONS_LEARNING.md) - Complete guide covering all GitHub Actions concepts
-- [`docs/PRACTICE_EXERCISES.md`](docs/PRACTICE_EXERCISES.md) - 10 hands-on exercises with step-by-step solutions
-- [`examples/yaml-practice.yml`](examples/yaml-practice.yml) - YAML syntax examples and patterns
+### 1. Clone the Repository
 
-## 📁 **Repository Structure**
+```bash
+git clone <your-repository-url>
+cd github-actions
+```
+
+### 2. Run the Setup Script
+
+The setup script will automatically check and install all required tools:
+
+```bash
+./setup_environment.sh
+```
+
+This script will:
+- ✅ Check and install Homebrew
+- ✅ Check and install Python 3
+- ✅ Check and install Poetry
+- ✅ Check and install Node.js
+- ✅ Check and install Appium
+- ✅ Check and install Appium drivers (UiAutomator2, XCUITest)
+- ✅ Check Xcode installation
+- ✅ Check Android SDK
+- ✅ Set up environment variables
+- ✅ Install Python dependencies
+- ✅ Check for connected devices
+
+### 3. Manual Setup (if needed)
+
+If you prefer to set up manually or the script fails:
+
+#### Install Required Tools
+
+```bash
+# Install Homebrew (if not installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Python 3
+brew install python
+
+# Install Poetry
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install Node.js
+brew install node
+
+# Install Appium
+npm install -g appium
+
+# Install Appium drivers
+appium driver install uiautomator2
+appium driver install xcuitest
+```
+
+#### Set up Environment Variables
+
+Add these to your `~/.zshrc` file:
+
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export ANDROID_SDK_ROOT=$ANDROID_HOME
+export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools
+```
+
+#### Install Python Dependencies
+
+```bash
+poetry install
+```
+
+## 📱 Device Setup
+
+### iOS Device Setup
+
+1. **Connect your iOS device** via USB
+2. **Trust the computer** on your device
+3. **Enable Developer Mode**:
+   - Go to Settings > Privacy & Security > Developer Mode
+   - Enable Developer Mode
+4. **Trust the developer profile**:
+   - Go to Settings > General > VPN & Device Management
+   - Trust your developer certificate
+
+### Android Device Setup
+
+1. **Connect your Android device** via USB
+2. **Enable Developer Options**:
+   - Go to Settings > About Phone
+   - Tap "Build Number" 7 times
+3. **Enable USB Debugging**:
+   - Go to Settings > Developer Options
+   - Enable "USB Debugging"
+4. **Trust the computer** when prompted
+
+## 🏃‍♂️ Running Tests
+
+### 1. Start Appium Servers
+
+Open two terminal windows and run:
+
+**Terminal 1 (iOS):**
+```bash
+appium -p 4723
+```
+
+**Terminal 2 (Android):**
+```bash
+appium -p 4724
+```
+
+### 2. Run Tests
+
+#### Run Parallel Tests (Recommended)
+```bash
+python test_parallel_mobile.py
+```
+
+#### Run Individual Tests
+
+**iOS Test:**
+```bash
+python -m pytest tests/test_login_ios.py::TestLiveboardiOS::test_liveboard_login_flow -v
+```
+
+**Android Test:**
+```bash
+python -m pytest tests/test_login_android_compose.py::TestAndroidLogin::test_android_login_flow -v
+```
+
+#### Run with Poetry
+```bash
+poetry run python test_parallel_mobile.py
+```
+
+## 📁 Project Structure
 
 ```
 github-actions/
-├── .github/workflows/          # GitHub Actions workflows
-│   ├── mobile-device-parallel-ci.yml  # 🔥 Parallel mobile testing
-│   ├── ios-real-device-ci.yml  # iOS device testing (disabled)
-│   ├── android-real-device-ci.yml # Android device testing (disabled)
-│   ├── hello-world.yml         # Basic example workflow
-│   └── ios-test-basic.yml      # Advanced iOS testing workflow
-├── tests/                      # Mobile test automation
-│   ├── conftest.py             # Test configuration
-│   ├── test_login_ios.py       # iOS test cases
-│   └── test_login_android.py   # Android test cases
-├── docs/                       # Learning materials
-│   ├── GITHUB_ACTIONS_LEARNING.md
-│   └── PRACTICE_EXERCISES.md
-├── MOBILE_TESTING_ARCHITECTURE.md # Complete mobile testing guide
-├── examples/                   # Example configurations
-│   └── yaml-practice.yml       # YAML syntax examples
-├── exercises/                  # Your practice exercises (create here)
-├── pyproject.toml             # Python project configuration
-├── README.md                  # This file
-└── .gitignore                 # Git ignore rules
+├── setup_environment.sh          # Environment setup script
+├── test_parallel_mobile.py       # Parallel test runner
+├── tests/
+│   ├── test_login_ios.py         # iOS login test
+│   └── test_login_android_compose.py  # Android login test
+├── pyproject.toml                # Poetry configuration
+└── README.md                     # This file
 ```
 
-## 🔧 **Practice Workflows**
+## 🔧 Configuration
 
-### **Basic Workflows**
-- [`.github/workflows/hello-world.yml`](.github/workflows/hello-world.yml) - Simple "Hello World" workflow
-- [`.github/workflows/ios-test-basic.yml`](.github/workflows/ios-test-basic.yml) - Advanced iOS testing workflow
+### iOS Configuration
 
-### **Exercise Workflows** (Create these in `exercises/` folder)
-- `exercises/system-info.yml` - Exercise 1: Basic workflow
-- `exercises/multi-job.yml` - Exercise 2: Multi-job workflow
-- `exercises/matrix-test.yml` - Exercise 3: Matrix strategy
-- `exercises/conditional.yml` - Exercise 4: Conditional execution
-- And more...
+The iOS test uses these default settings:
+- **Device UDID**: `00008030-000151561A85402E` (can be overridden with `DEVICE_UDID` env var)
+- **Device Name**: `iPhone SE` (can be overridden with `DEVICE_NAME` env var)
+- **Platform Version**: `17.2` (can be overridden with `PLATFORM_VERSION` env var)
+- **Team ID**: `2FHJSTZ57U` (can be overridden with `TEAM_ID` env var)
+- **Bundle ID**: `com.inconceptlabs.liveboard`
 
-## 🎯 **Learning Progress**
+### Android Configuration
 
-### ✅ **Completed Topics**
-- [x] GitHub Actions basics
-- [x] YAML syntax
-- [x] Workflow creation
-- [x] Actions marketplace
-- [x] Basic workflow examples
+The Android test uses these default settings:
+- **Device UDID**: `HT7991A08308`
+- **Platform Version**: `13`
+- **App Package**: `com.inconceptlabs.liveboard`
+- **App Activity**: `com.inconceptlabs.liveboard.pages.activities.LaunchActivity`
 
-### 🔄 **Currently Learning**
-- [ ] Self-hosted runners
-- [ ] iOS CI/CD workflow
-- [ ] Advanced workflow features
-- [ ] Workflow optimization
+## 🐛 Troubleshooting
 
-### 📋 **Next Steps**
-- [ ] Complete all 10 practice exercises
-- [ ] Set up self-hosted runner for macOS
-- [ ] Create real iOS testing pipeline
-- [ ] Implement deployment workflows
+### Common Issues
 
-## 🏋️ **Practice Exercises**
+#### 1. "Neither ANDROID_HOME nor ANDROID_SDK_ROOT environment variable was exported"
 
-| Exercise | Topic | Status |
-|----------|-------|--------|
-| 1 | Basic Workflow Creation | ⏳ |
-| 2 | Multi-Job Workflow | ⏳ |
-| 3 | Matrix Strategy | ⏳ |
-| 4 | Conditional Execution | ⏳ |
-| 5 | Marketplace Actions | ⏳ |
-| 6 | Artifacts and Outputs | ⏳ |
-| 7 | Environment Variables | ⏳ |
-| 8 | iOS Specific Workflow | ⏳ |
-| 9 | Workflow with Inputs | ⏳ |
-| 10 | Complete iOS Pipeline | ⏳ |
+**Solution:**
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export ANDROID_SDK_ROOT=$ANDROID_HOME
+```
 
-## 🚀 **Quick Start**
+#### 2. "Xcode not found"
 
-1. **Clone this repository**
-   ```bash
-   git clone https://github.com/Arm63/github-actions.git
-   cd github-actions
-   ```
+**Solution:**
+- Install Xcode from the App Store
+- Run: `sudo xcode-select --install`
 
-2. **Test existing workflows**
-   - Go to Actions tab in GitHub
-   - Run "Hello World" workflow manually
-   - Check the logs and results
+#### 3. "No devices found"
 
-3. **Start with Exercise 1**
-   - Read [`docs/PRACTICE_EXERCISES.md`](docs/PRACTICE_EXERCISES.md)
-   - Create `.github/workflows/system-info.yml`
-   - Push and test
+**Solution:**
+- Ensure devices are connected via USB
+- Trust the computer on both devices
+- Enable USB debugging on Android
+- Trust developer profile on iOS
 
-4. **Progress through exercises**
-   - Complete exercises 1-10 in order
-   - Update progress table above
-   - Test each workflow
+#### 4. "Appium server not running"
 
-## 📖 **Key Concepts Learned**
+**Solution:**
+- Start iOS server: `appium -p 4723`
+- Start Android server: `appium -p 4724`
 
-- **Workflows**: Automated processes triggered by events
-- **Jobs**: Set of steps that run on the same runner
-- **Steps**: Individual tasks within a job
-- **Actions**: Reusable units of code
-- **Runners**: Servers that execute workflows
-- **Triggers**: Events that start workflows
-- **Artifacts**: Files generated by workflows
-- **Secrets**: Encrypted environment variables
+#### 5. "Poetry not found"
 
-## 🛠️ **Tools & Technologies**
+**Solution:**
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+```
 
-- **GitHub Actions** - CI/CD platform
-- **YAML** - Configuration language
-- **Python** - Programming language
-- **Poetry** - Dependency management
-- **Appium** - Mobile automation
-- **macOS** - Operating system for iOS testing
+### Getting Device UDIDs
 
-## 🎯 **Goals**
+#### iOS Device UDID
+```bash
+xcrun devicectl list devices
+```
 
-- [x] Understand GitHub Actions fundamentals
-- [x] Master YAML syntax
-- [x] Create basic workflows
-- [ ] Complete all practice exercises
-- [ ] Set up self-hosted runner
-- [ ] Build iOS testing pipeline
-- [ ] Implement advanced features
+#### Android Device UDID
+```bash
+adb devices
+```
 
-## 📝 **Notes**
+## 📊 Test Results
 
-- All workflows use `workflow_dispatch` for manual testing
-- iOS-specific workflows require macOS runners
-- Self-hosted runners needed for real iOS device testing
-- Check Actions tab for workflow execution logs
+The parallel test runner provides:
+- Individual test results and timing
+- Overall execution summary
+- Success/failure status for each platform
+- Total execution time
 
-## 🔗 **Resources**
+Example output:
+```
+📊 PARALLEL TEST EXECUTION SUMMARY
+==================================================
+Android  | ✅ PASSED |  19.72s
+iOS      | ✅ PASSED |  56.67s
+--------------------------------------------------
+Total Tests: 2
+Passed: 2
+Failed: 0
+Overall Duration: 56.67s
+```
 
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [YAML Syntax Guide](https://yaml.org/spec/1.2/spec.html)
-- [Actions Marketplace](https://github.com/marketplace?type=actions)
-- [Self-hosted Runners](https://docs.github.com/en/actions/hosting-your-own-runners)
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+If you encounter any issues:
+
+1. Check the troubleshooting section above
+2. Run the setup script: `./setup_environment.sh`
+3. Verify device connections
+4. Check Appium server status
+5. Review test logs for specific errors
+
+## 🔄 Updates
+
+To update the project:
+
+```bash
+git pull origin main
+poetry install
+./setup_environment.sh
+```
 
 ---
 
-**Happy Learning!** 🎉 Ready to automate all the things with GitHub Actions!
+**Happy Testing! 🎯**

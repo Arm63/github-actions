@@ -11,6 +11,8 @@ python = "^3.11"
 requests = "^2.31.0"
 flask = "^3.0.0"
 schedule = "^1.2.0"
+appium-python-client = "^5.1.1"
+pytest = "^8.4.1"
 
 [build-system]
 requires = ["poetry-core"]

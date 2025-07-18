@@ -11,12 +11,12 @@ sys.path.append('..')
 
 
 class TestLiveboardiOS:
-    """Test class for Liveboard iOS application navigation."""
+    """Test class for Liveboard iOS application login flow."""
     
     def setup_method(self):
         """Setup method to initialize the driver before each test."""
         # Get device UDID from environment or use default
-        device_udid = os.getenv('DEVICE_UDID', 'auto')
+        device_udid = os.getenv('DEVICE_UDID', '00008030-000151561A85402E')
         device_name = os.getenv('DEVICE_NAME', 'iPhone SE')
         platform_version = os.getenv('PLATFORM_VERSION', '17.2')
         team_id = os.getenv('TEAM_ID', '2FHJSTZ57U')
@@ -37,7 +37,13 @@ class TestLiveboardiOS:
             'wdaLaunchTimeout': 180000,
             'wdaConnectionTimeout': 180000,
             'xcuitestTeamId': team_id,
-            'updateWDABundleId': f"{team_id}.WebDriverAgentRunner"
+            'updateWDABundleId': f"{team_id}.WebDriverAgentRunner",
+            'fullReset': True,  # Reset all app data to start fresh
+            'noReset': False,   # Allow reset
+            'shouldTerminateApp': True,  # Terminate app before starting
+            'app': '/path/to/app.ipa',  # Will be ignored if not provided
+            'autoLaunch': True,  # Launch app automatically
+            'forceAppLaunch': True  # Force app launch even if already running
         }
         
         # Initialize driver
@@ -69,6 +75,21 @@ class TestLiveboardiOS:
         
         print(f"✅ Connected to iOS device: {device_name} (UDID: {device_udid})")
         
+        # Explicitly terminate and reset the app
+        try:
+            print("🔄 Terminating app to ensure fresh start...")
+            self.driver.terminate_app('com.inconceptlabs.liveboard')
+            time.sleep(2)
+            
+            print("🚀 Launching app fresh...")
+            self.driver.activate_app('com.inconceptlabs.liveboard')
+            time.sleep(3)
+            
+            print("✅ App reset and launched fresh")
+        except Exception as e:
+            print(f"⚠️ App reset warning: {e}")
+            print("🔄 Continuing with current app state...")
+        
     def teardown_method(self):
         """Teardown method to quit the driver after each test."""
         if hasattr(self, 'driver') and self.driver:
@@ -83,11 +104,11 @@ class TestLiveboardiOS:
         print(f"📸 Screenshot saved: {filename}")
         return filename
     
-    def wait_and_click(self, locator, timeout=10):
+    def wait_and_click(self, by, locator, timeout=10):
         """Wait for element and click it."""
         try:
             element = WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable(locator)
+                EC.element_to_be_clickable((by, locator))
             )
             element.click()
             print(f"✅ Clicked element: {locator}")
@@ -96,11 +117,11 @@ class TestLiveboardiOS:
             print(f"❌ Timeout waiting for clickable element: {locator}")
             return False
     
-    def wait_for_element(self, locator, timeout=10):
+    def wait_for_element(self, by, locator, timeout=10):
         """Wait for element to be present."""
         try:
             element = WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located(locator)
+                EC.presence_of_element_located((by, locator))
             )
             print(f"✅ Found element: {locator}")
             return element
@@ -108,9 +129,9 @@ class TestLiveboardiOS:
             print(f"❌ Timeout waiting for element: {locator}")
             return None
     
-    def test_liveboard_navigation(self):
-        """Test navigating through Liveboard application screens."""
-        print("\n🚀 Starting Liveboard iOS navigation test...")
+    def test_liveboard_login_flow(self):
+        """Test the complete Liveboard iOS login flow."""
+        print("\n🚀 Starting Liveboard iOS login flow test...")
         
         # Take initial screenshot
         self.take_screenshot("app_launch")
@@ -119,205 +140,110 @@ class TestLiveboardiOS:
         time.sleep(3)
         
         try:
-            # Look for common login/welcome elements
-            print("🔍 Looking for login or welcome screen...")
+            # STEP 1: Click on "Log in" button using iOS Predicate String (most unique)
+            print("🔍 Step 1: Looking for 'Log in' button...")
             
-            # Try to find login button or email field
-            login_elements = [
-                (AppiumBy.ACCESSIBILITY_ID, "Log In"),
-                (AppiumBy.ACCESSIBILITY_ID, "Sign In"),
-                (AppiumBy.ACCESSIBILITY_ID, "Login"),
-                (AppiumBy.XPATH, "//XCUIElementTypeButton[contains(@name, 'Log')]"),
-                (AppiumBy.XPATH, "//XCUIElementTypeTextField[contains(@name, 'email')]"),
-                (AppiumBy.XPATH, "//XCUIElementTypeTextField[contains(@name, 'Email')]"),
-                (AppiumBy.CLASS_NAME, "XCUIElementTypeTextField"),
-            ]
+            # Using iOS Predicate String (removed coordinates for flexibility)
+            log_in_predicate = "name == 'Log in' AND label == 'Log in' AND type == 'XCUIElementTypeButton'"
             
-            login_found = False
-            for locator in login_elements:
-                element = self.wait_for_element(locator, timeout=5)
-                if element:
-                    print(f"✅ Found login element: {locator}")
-                    login_found = True
-                    break
-            
-            if login_found:
-                self.take_screenshot("login_screen")
+            if self.wait_and_click(AppiumBy.IOS_PREDICATE, log_in_predicate, timeout=15):
+                print("✅ Successfully clicked 'Log in' button")
+                self.take_screenshot("after_log_in_click")
                 
-                # Try to interact with login elements
-                print("🔐 Attempting to interact with login screen...")
+                # Wait for new screen to load
+                print("⏳ Waiting for new screen to load...")
+                time.sleep(3)
                 
-                # Look for email field and enter test email
-                email_selectors = [
-                    (AppiumBy.XPATH, "//XCUIElementTypeTextField[contains(@name, 'email')]"),
-                    (AppiumBy.XPATH, "//XCUIElementTypeTextField[contains(@name, 'Email')]"),
-                    (AppiumBy.CLASS_NAME, "XCUIElementTypeTextField"),
-                ]
+                # STEP 2: Click on "Continue with Email" button
+                print("🔍 Step 2: Looking for 'Continue with Email' button...")
                 
-                for selector in email_selectors:
-                    email_field = self.wait_for_element(selector, timeout=3)
+                # Using iOS Predicate String (most unique from your options)
+                continue_email_predicate = "name == 'Continue with Email' AND label == 'Continue with Email' AND type == 'XCUIElementTypeButton'"
+                
+                if self.wait_and_click(AppiumBy.IOS_PREDICATE, continue_email_predicate, timeout=15):
+                    print("✅ Successfully clicked 'Continue with Email' button")
+                    self.take_screenshot("after_continue_email_click")
+                    
+                    # Wait for email/password screen to load
+                    print("⏳ Waiting for email/password screen to load...")
+                    time.sleep(3)
+                    
+                    # STEP 3: Fill email field
+                    print("🔍 Step 3: Looking for email input field...")
+                    
+                    # Using iOS Predicate String for email field
+                    email_predicate = "value == 'Email address'"
+                    email_field = self.wait_for_element(AppiumBy.IOS_PREDICATE, email_predicate, timeout=15)
+                    
                     if email_field:
-                        try:
-                            email_field.clear()
-                            email_field.send_keys("test@liveboard.com")
-                            print("✅ Entered test email")
-                            break
-                        except Exception as e:
-                            print(f"⚠️ Could not enter email: {e}")
-                
-                # Look for password field
-                password_selectors = [
-                    (AppiumBy.XPATH, "//XCUIElementTypeSecureTextField"),
-                    (AppiumBy.XPATH, "//XCUIElementTypeTextField[contains(@name, 'password')]"),
-                    (AppiumBy.XPATH, "//XCUIElementTypeTextField[contains(@name, 'Password')]"),
-                ]
-                
-                for selector in password_selectors:
-                    password_field = self.wait_for_element(selector, timeout=3)
-                    if password_field:
-                        try:
-                            password_field.clear()
-                            password_field.send_keys("testpassword")
-                            print("✅ Entered test password")
-                            break
-                        except Exception as e:
-                            print(f"⚠️ Could not enter password: {e}")
-                
-                self.take_screenshot("login_filled")
-                
-                # Try to click login button
-                login_buttons = [
-                    (AppiumBy.ACCESSIBILITY_ID, "Log In"),
-                    (AppiumBy.ACCESSIBILITY_ID, "Sign In"),
-                    (AppiumBy.ACCESSIBILITY_ID, "Login"),
-                    (AppiumBy.XPATH, "//XCUIElementTypeButton[contains(@name, 'Log')]"),
-                    (AppiumBy.XPATH, "//XCUIElementTypeButton[contains(@name, 'Sign')]"),
-                ]
-                
-                for button_locator in login_buttons:
-                    if self.wait_and_click(button_locator, timeout=3):
-                        print("✅ Clicked login button")
-                        break
-                
-                # Wait for potential login processing
-                time.sleep(5)
-                self.take_screenshot("after_login_attempt")
-            
-            # Look for main app content or dashboard
-            print("🏠 Looking for main app content...")
-            
-            # Common dashboard/main screen elements
-            main_elements = [
-                (AppiumBy.ACCESSIBILITY_ID, "Dashboard"),
-                (AppiumBy.ACCESSIBILITY_ID, "Home"),
-                (AppiumBy.ACCESSIBILITY_ID, "Menu"),
-                (AppiumBy.XPATH, "//XCUIElementTypeButton[contains(@name, 'Menu')]"),
-                (AppiumBy.XPATH, "//XCUIElementTypeButton[contains(@name, 'Dashboard')]"),
-                (AppiumBy.CLASS_NAME, "XCUIElementTypeNavigationBar"),
-                (AppiumBy.CLASS_NAME, "XCUIElementTypeTabBar"),
-            ]
-            
-            main_found = False
-            for locator in main_elements:
-                element = self.wait_for_element(locator, timeout=5)
-                if element:
-                    print(f"✅ Found main app element: {locator}")
-                    main_found = True
-                    break
-            
-            if main_found:
-                self.take_screenshot("main_screen")
-                
-                # Try to navigate through tabs or menu items
-                print("🧭 Attempting to navigate through app...")
-                
-                # Look for tab bar items
-                try:
-                    tab_buttons = self.driver.find_elements(AppiumBy.CLASS_NAME, "XCUIElementTypeButton")
-                    if tab_buttons:
-                        print(f"Found {len(tab_buttons)} buttons to interact with")
+                        print("✅ Found email field")
+                        email_field.clear()
+                        email_field.send_keys("prod@mailinator.com")
+                        print("✅ Entered email: prod@mailinator.com")
+                        self.take_screenshot("email_filled")
                         
-                        # Click on different tabs/buttons
-                        for i, button in enumerate(tab_buttons[:3]):  # Limit to first 3 buttons
-                            try:
-                                button_name = button.get_attribute("name") or f"Button {i+1}"
-                                print(f"🔘 Clicking button: {button_name}")
-                                button.click()
-                                time.sleep(2)
-                                self.take_screenshot(f"button_{i+1}_{button_name.replace(' ', '_')}")
-                            except Exception as e:
-                                print(f"⚠️ Could not click button {i+1}: {e}")
-                
-                except Exception as e:
-                    print(f"⚠️ Could not find tab buttons: {e}")
+                        # STEP 4: Fill password field
+                        print("🔍 Step 4: Looking for password input field...")
+                        
+                        # Using iOS Predicate String for password field
+                        password_predicate = "value == 'Password'"
+                        password_field = self.wait_for_element(AppiumBy.IOS_PREDICATE, password_predicate, timeout=15)
+                        
+                        if password_field:
+                            print("✅ Found password field")
+                            password_field.clear()
+                            password_field.send_keys("testtest1")
+                            print("✅ Entered password: testtest1")
+                            self.take_screenshot("password_filled")
+                            
+                            # Wait a moment to see the filled form
+                            time.sleep(2)
+                            
+                            # STEP 5: Click the final "Log in" button to submit the form
+                            print("🔍 Step 5: Looking for final 'Log in' button to submit...")
+                            
+                            # Using iOS Predicate String for the submit button
+                            submit_login_predicate = "name == 'Log in' AND label == 'Log in' AND type == 'XCUIElementTypeButton'"
+                            
+                            if self.wait_and_click(AppiumBy.IOS_PREDICATE, submit_login_predicate, timeout=15):
+                                print("✅ Successfully clicked final 'Log in' button")
+                                self.take_screenshot("after_login_submit")
+                                
+                                # Wait 4 seconds as requested
+                                print("⏳ Waiting 4 seconds after login submission...")
+                                time.sleep(4)
+                                
+                                print("✅ Login form completed successfully!")
+                                self.take_screenshot("login_form_completed")
+                            else:
+                                print("❌ Could not click final 'Log in' button")
+                                self.take_screenshot("login_submit_not_found")
+                            
+                        else:
+                            print("❌ Could not find password field")
+                            self.take_screenshot("password_field_not_found")
+                            
+                    else:
+                        print("❌ Could not find email field")
+                        self.take_screenshot("email_field_not_found")
+                        
+                else:
+                    print("❌ Could not click 'Continue with Email' button")
+                    self.take_screenshot("continue_email_not_found")
+                    
+            else:
+                print("❌ Could not click 'Log in' button")
+                self.take_screenshot("log_in_not_found")
             
             # Final screenshot
-            self.take_screenshot("final_state")
+            self.take_screenshot("test_final_state")
             
-            print("✅ Liveboard navigation test completed successfully!")
+            print("✅ Liveboard iOS login flow test completed!")
             
         except Exception as e:
-            print(f"❌ Error during navigation test: {e}")
+            print(f"❌ Error during login flow test: {e}")
             self.take_screenshot("error_state")
             raise
-    
-    def test_click_composable_ios(self):
-        """Test clicking composable elements in iOS Liveboard app."""
-        print("\n🎯 Starting composable click test...")
-        
-        start_time = time.time()
-        
-        # Take initial screenshot
-        screenshot_path = self.take_screenshot("composable_test_start")
-        
-        # Wait for app to load
-        time.sleep(3)
-        
-        try:
-            # Look for clickable elements
-            print("🔍 Looking for clickable composable elements...")
-            
-            # Find all clickable elements
-            clickable_elements = self.driver.find_elements(AppiumBy.CLASS_NAME, "XCUIElementTypeButton")
-            clickable_elements.extend(self.driver.find_elements(AppiumBy.CLASS_NAME, "XCUIElementTypeCell"))
-            clickable_elements.extend(self.driver.find_elements(AppiumBy.CLASS_NAME, "XCUIElementTypeOther"))
-            
-            print(f"Found {len(clickable_elements)} potentially clickable elements")
-            
-            # Click on a few elements
-            clicked_count = 0
-            for i, element in enumerate(clickable_elements[:5]):  # Limit to first 5 elements
-                try:
-                    element_name = element.get_attribute("name") or f"Element {i+1}"
-                    if element.is_enabled() and element.is_displayed():
-                        print(f"🔘 Clicking element: {element_name}")
-                        element.click()
-                        time.sleep(2)
-                        self.take_screenshot(f"composable_click_{clicked_count+1}")
-                        clicked_count += 1
-                        
-                        if clicked_count >= 3:  # Limit to 3 clicks
-                            break
-                except Exception as e:
-                    print(f"⚠️ Could not click element {i+1}: {e}")
-            
-            print(f"✅ Successfully clicked {clicked_count} composable elements")
-            
-        except Exception as e:
-            print(f"❌ Error during composable click test: {e}")
-            error_screenshot = self.take_screenshot("composable_error")
-            
-            duration = time.time() - start_time
-            print(f"❌ Test failed after {duration:.2f} seconds: {e}")
-            raise
-        
-        # Final screenshot
-        final_screenshot = self.take_screenshot("composable_test_end")
-        print("✅ Composable click test completed!")
-        
-        # Test completed successfully
-        duration = time.time() - start_time
-        print(f"✅ Test completed successfully in {duration:.2f} seconds!")
 
 
 if __name__ == "__main__":
@@ -325,7 +251,7 @@ if __name__ == "__main__":
     test_instance = TestLiveboardiOS()
     test_instance.setup_method()
     try:
-        test_instance.test_liveboard_navigation()
-        test_instance.test_click_composable_ios()
+        test_instance.test_liveboard_login_flow()
     finally:
-        test_instance.teardown_method() 
+        test_instance.teardown_method()
+

@@ -1,200 +1,264 @@
 #!/bin/bash
 
-echo "🚀 iOS Mobile Testing Pre-flight Check"
-echo "======================================"
+# Pre-flight Check Script for Mobile Automation
+# Quick verification that everything is ready for testing
+
+set -e
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Track overall status
-PREFLIGHT_PASSED=true
-
-# Function to print status
+# Function to print colored output
 print_status() {
-    if [ $1 -eq 0 ]; then
-        echo -e "${GREEN}✅ $2${NC}"
-    else
-        echo -e "${RED}❌ $2${NC}"
-        PREFLIGHT_PASSED=false
-    fi
+    echo -e "${BLUE}[CHECK]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[✓]${NC} $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠️ $1${NC}"
+    echo -e "${YELLOW}[⚠]${NC} $1"
 }
 
-print_info() {
-    echo -e "ℹ️ $1"
+print_error() {
+    echo -e "${RED}[✗]${NC} $1"
 }
 
-echo "🔍 Checking system requirements..."
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
 
-# Check if running on macOS
-if [[ "$OSTYPE" != "darwin"* ]]; then
-    print_status 1 "macOS required for iOS testing"
-    exit 1
-fi
-print_status 0 "Running on macOS"
+# Function to check if port is in use
+port_in_use() {
+    lsof -i :$1 >/dev/null 2>&1
+}
 
-echo ""
-echo "🍎 iOS Platform Checks"
-echo "====================="
+echo "🔍 Pre-flight Check for Mobile Automation"
+echo "========================================"
+echo
 
-# Check libimobiledevice
-if command -v idevice_id &> /dev/null; then
-    print_status 0 "libimobiledevice installed"
-else
-    print_status 1 "libimobiledevice not installed - run: brew install libimobiledevice"
-fi
+# Initialize counters
+total_checks=0
+passed_checks=0
+failed_checks=0
 
-# Check iOS device connection
-echo ""
-echo "📱 Checking iOS device connection..."
-DEVICE_COUNT=$(idevice_id -l 2>/dev/null | wc -l)
-if [ "$DEVICE_COUNT" -eq 0 ]; then
-    print_status 1 "No iOS device connected"
-    print_info "Please connect your iPhone and trust the computer"
-else
-    DEVICE_UDID=$(idevice_id -l | head -1)
-    print_status 0 "iOS device connected: $DEVICE_UDID"
-    
-    # Get device info
-    DEVICE_NAME=$(ideviceinfo -u "$DEVICE_UDID" -k DeviceName 2>/dev/null)
-    IOS_VERSION=$(ideviceinfo -u "$DEVICE_UDID" -k ProductVersion 2>/dev/null)
-    DEVICE_TYPE=$(ideviceinfo -u "$DEVICE_UDID" -k ProductType 2>/dev/null)
-    
-    print_info "Device: $DEVICE_NAME"
-    print_info "iOS Version: $IOS_VERSION"
-    print_info "Type: $DEVICE_TYPE"
-fi
-
-# Check if Liveboard app is installed
-echo ""
-echo "📱 Checking Liveboard app on iOS..."
-if [ "$DEVICE_COUNT" -gt 0 ]; then
-    if ideviceinstaller -l | grep -q "com.inconceptlabs.liveboard"; then
-        LIVEBOARD_VERSION=$(ideviceinstaller -l | grep "com.inconceptlabs.liveboard" | cut -d'"' -f4)
-        print_status 0 "Liveboard app installed (version: $LIVEBOARD_VERSION)"
-    else
-        print_status 1 "Liveboard app not installed"
-        print_info "Please install Liveboard app on your device"
-    fi
-fi
-
-# Check Node.js and Appium
-echo ""
-echo "🔧 Checking Appium setup..."
-if command -v node &> /dev/null; then
-    NODE_VERSION=$(node --version)
-    print_status 0 "Node.js installed: $NODE_VERSION"
-else
-    print_status 1 "Node.js not installed"
-fi
-
-if command -v appium &> /dev/null; then
-    APPIUM_VERSION=$(appium --version)
-    print_status 0 "Appium installed: $APPIUM_VERSION"
-    
-    # Check XCUITest driver
-    appium driver list --installed > /tmp/drivers_check.txt 2>&1
-    if grep -q "xcuitest" /tmp/drivers_check.txt; then
-        XCUITEST_VERSION=$(grep "xcuitest" /tmp/drivers_check.txt | head -1)
-        print_status 0 "XCUITest driver installed: $XCUITEST_VERSION"
-    else
-        print_status 1 "XCUITest driver not installed - run: appium driver install xcuitest"
-    fi
-else
-    print_status 1 "Appium not installed"
-fi
-
-# Check Python and Poetry
-echo ""
-echo "🐍 Checking Python setup..."
-if command -v python3 &> /dev/null; then
+# 1. Check Python
+print_status "Checking Python..."
+total_checks=$((total_checks + 1))
+if command_exists python3; then
     PYTHON_VERSION=$(python3 --version)
-    print_status 0 "Python3 installed: $PYTHON_VERSION"
+    print_success "Python 3: $PYTHON_VERSION"
+    passed_checks=$((passed_checks + 1))
 else
-    print_status 1 "Python3 not installed"
+    print_error "Python 3 not found"
+    failed_checks=$((failed_checks + 1))
 fi
 
-if command -v poetry &> /dev/null; then
+# 2. Check Poetry
+print_status "Checking Poetry..."
+total_checks=$((total_checks + 1))
+if command_exists poetry; then
     POETRY_VERSION=$(poetry --version)
-    print_status 0 "Poetry installed: $POETRY_VERSION"
+    print_success "Poetry: $POETRY_VERSION"
+    passed_checks=$((passed_checks + 1))
 else
-    print_status 1 "Poetry not installed"
+    print_error "Poetry not found"
+    failed_checks=$((failed_checks + 1))
 fi
 
-# Check project files
-echo ""
-echo "📁 Checking project files..."
-if [ -f "pyproject.toml" ]; then
-    print_status 0 "pyproject.toml found"
+# 3. Check Node.js
+print_status "Checking Node.js..."
+total_checks=$((total_checks + 1))
+if command_exists node; then
+    NODE_VERSION=$(node --version)
+    print_success "Node.js: $NODE_VERSION"
+    passed_checks=$((passed_checks + 1))
 else
-    print_status 1 "pyproject.toml not found"
+    print_error "Node.js not found"
+    failed_checks=$((failed_checks + 1))
 fi
 
-if [ -f "test_ios_simple.py" ]; then
-    print_status 0 "test_ios_simple.py found"
+# 4. Check Appium
+print_status "Checking Appium..."
+total_checks=$((total_checks + 1))
+if command_exists appium; then
+    APPIUM_VERSION=$(appium --version)
+    print_success "Appium: $APPIUM_VERSION"
+    passed_checks=$((passed_checks + 1))
 else
-    print_status 1 "test_ios_simple.py not found"
+    print_error "Appium not found"
+    failed_checks=$((failed_checks + 1))
 fi
 
-if [ -f "tests/test_login_ios.py" ]; then
-    print_status 0 "tests/test_login_ios.py found"
+# 5. Check Appium drivers
+print_status "Checking Appium drivers..."
+total_checks=$((total_checks + 1))
+DRIVERS_OUTPUT="$(appium driver list)"
+if [[ "$DRIVERS_OUTPUT" == *"uiautomator2"* && "$DRIVERS_OUTPUT" == *"xcuitest"* ]]; then
+    print_success "Appium drivers: UiAutomator2 and XCUITest (present in driver list)"
+    passed_checks=$((passed_checks + 1))
 else
-    print_status 1 "tests/test_login_ios.py not found"
+    print_error "Appium drivers missing (not found in driver list)"
+    failed_checks=$((failed_checks + 1))
 fi
 
-if [ -f "tests/test_login_android_compose.py" ]; then
-    print_status 0 "tests/test_login_android_compose.py found (Android Compose test)"
+# 6. Check Xcode
+print_status "Checking Xcode..."
+total_checks=$((total_checks + 1))
+if command_exists xcodebuild; then
+    XCODE_VERSION=$(xcodebuild -version | head -n 1)
+    print_success "Xcode: $XCODE_VERSION"
+    passed_checks=$((passed_checks + 1))
 else
-    print_warning "tests/test_login_android_compose.py not found"
+    print_error "Xcode not found"
+    failed_checks=$((failed_checks + 1))
 fi
 
-# Check GitHub Actions runner
-echo ""
-echo "🏃 Checking GitHub Actions runner..."
-if [ -d "$HOME/actions-runner" ]; then
-    print_status 0 "GitHub Actions runner directory found"
-    
-    if pgrep -f "actions-runner" > /dev/null; then
-        print_status 0 "GitHub Actions runner is running"
+# 7. Check Android SDK
+print_status "Checking Android SDK..."
+total_checks=$((total_checks + 1))
+if [ -d "$HOME/Library/Android/sdk" ]; then
+    print_success "Android SDK found"
+    passed_checks=$((passed_checks + 1))
+else
+    print_error "Android SDK not found"
+    failed_checks=$((failed_checks + 1))
+fi
+
+# 8. Check Android environment variables
+print_status "Checking Android environment variables..."
+total_checks=$((total_checks + 1))
+if [ -n "$ANDROID_HOME" ] && [ -n "$ANDROID_SDK_ROOT" ]; then
+    print_success "Android environment variables set"
+    passed_checks=$((passed_checks + 1))
+else
+    print_warning "Android environment variables not set"
+    print_warning "Run: export ANDROID_HOME=\$HOME/Library/Android/sdk"
+    print_warning "Run: export ANDROID_SDK_ROOT=\$ANDROID_HOME"
+    failed_checks=$((failed_checks + 1))
+fi
+
+# 9. Check adb
+print_status "Checking ADB..."
+total_checks=$((total_checks + 1))
+if command_exists adb; then
+    print_success "ADB available"
+    passed_checks=$((passed_checks + 1))
+else
+    print_error "ADB not found"
+    failed_checks=$((failed_checks + 1))
+fi
+
+# 10. Check iOS Appium server (port 4723)
+print_status "Checking iOS Appium server (port 4723)..."
+total_checks=$((total_checks + 1))
+if port_in_use 4723; then
+    print_success "iOS Appium server running on port 4723"
+    passed_checks=$((passed_checks + 1))
+else
+    print_error "iOS Appium server not running on port 4723"
+    print_warning "Start with: appium -p 4723"
+    failed_checks=$((failed_checks + 1))
+fi
+
+# 11. Check Android Appium server (port 4724)
+print_status "Checking Android Appium server (port 4724)..."
+total_checks=$((total_checks + 1))
+if port_in_use 4724; then
+    print_success "Android Appium server running on port 4724"
+    passed_checks=$((passed_checks + 1))
+else
+    print_error "Android Appium server not running on port 4724"
+    print_warning "Start with: appium -p 4724"
+    failed_checks=$((failed_checks + 1))
+fi
+
+# 12. Check connected devices
+print_status "Checking connected devices..."
+echo
+
+# Check iOS devices
+print_status "iOS devices:"
+if command_exists xcrun; then
+    IOS_DEVICES=$(xcrun devicectl list devices 2>/dev/null | grep -E "(iPhone|iPad)" | wc -l)
+    if [ "$IOS_DEVICES" -gt 0 ]; then
+        print_success "Found $IOS_DEVICES iOS device(s)"
+        xcrun devicectl list devices 2>/dev/null | grep -E "(iPhone|iPad)" | while read line; do
+            echo "  $line"
+        done
+        passed_checks=$((passed_checks + 1))
     else
-        print_warning "GitHub Actions runner not running - start with: cd ~/actions-runner && ./run.sh"
+        print_warning "No iOS devices found"
+        failed_checks=$((failed_checks + 1))
     fi
 else
-    print_status 1 "GitHub Actions runner not found"
+    print_error "xcrun not available"
+    failed_checks=$((failed_checks + 1))
+fi
+total_checks=$((total_checks + 1))
+
+# Check Android devices
+print_status "Android devices:"
+if command_exists adb; then
+    ANDROID_DEVICES=$(adb devices | grep -v "List of devices" | grep -v "^$" | wc -l)
+    if [ "$ANDROID_DEVICES" -gt 0 ]; then
+        print_success "Found $ANDROID_DEVICES Android device(s)"
+        adb devices | grep -v "List of devices" | grep -v "^$" | while read line; do
+            echo "  $line"
+        done
+        passed_checks=$((passed_checks + 1))
+    else
+        print_warning "No Android devices found"
+        failed_checks=$((failed_checks + 1))
+    fi
+else
+    print_error "adb not available"
+    failed_checks=$((failed_checks + 1))
+fi
+total_checks=$((total_checks + 1))
+
+# 13. Check Python dependencies
+print_status "Checking Python dependencies..."
+total_checks=$((total_checks + 1))
+if [ -f "pyproject.toml" ]; then
+    if poetry show >/dev/null 2>&1; then
+        print_success "Python dependencies installed"
+        passed_checks=$((passed_checks + 1))
+    else
+        print_warning "Python dependencies not installed"
+        print_warning "Run: poetry install"
+        failed_checks=$((failed_checks + 1))
+    fi
+else
+    print_error "pyproject.toml not found"
+    failed_checks=$((failed_checks + 1))
 fi
 
-# Final summary
-echo ""
+echo
+echo "========================================"
 echo "📊 Pre-flight Check Summary"
-echo "=========================="
+echo "========================================"
+echo "Total Checks: $total_checks"
+echo "Passed: $passed_checks"
+echo "Failed: $failed_checks"
+echo
 
-if [ "$PREFLIGHT_PASSED" = true ]; then
-    echo -e "${GREEN}✅ All checks passed! Ready for iOS testing.${NC}"
-    echo ""
-    echo "🚀 You can now run the GitHub Actions workflows:"
-    echo "   📱 iOS: Go to Actions → 'iOS Real Device Testing'"
-    echo "   📱 Parallel: Go to Actions → 'Mobile Device Parallel Testing'"
-    echo "   1. Go to your GitHub repository"
-    echo "   2. Click 'Actions' → Select desired workflow"
-    echo "   3. Click 'Run workflow'"
+if [ $failed_checks -eq 0 ]; then
+    print_success "All checks passed! Ready to run tests."
+    echo
+    print_status "You can now run:"
+    echo "  python test_parallel_mobile.py"
     exit 0
 else
-    echo -e "${RED}❌ Some checks failed. Please fix the issues above.${NC}"
-    echo ""
-    echo "🔧 Common fixes:"
-    echo "   📱 iOS:"
-    echo "     - Install missing tools: brew install libimobiledevice"
-    echo "     - Connect and trust your iPhone"
-    echo "     - Install XCUITest driver: appium driver install xcuitest"
-    echo "   📱 General:"
-    echo "     - Install Liveboard app on device(s)"
-    echo "     - Install Appium: npm install -g appium"
-    echo "     - Install Poetry: curl -sSL https://install.python-poetry.org | python3 -"
+    print_error "Some checks failed. Please fix the issues above."
+    echo
+    print_status "To fix setup issues, run:"
+    echo "  ./setup_environment.sh"
     exit 1
 fi 
