@@ -79,4 +79,4 @@ screenshots/
 test-results/
 
 # Archive folder (keep iOS testing files locally but don't commit)
-archive/ 
+archive/ actions-runner/
