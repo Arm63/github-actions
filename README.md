@@ -154,6 +154,56 @@ python -m pytest tests/test_login_android_compose.py::TestAndroidLogin::test_and
 poetry run python test_parallel_mobile.py
 ```
 
+## 🖥️ Setting Up a GitHub Actions Self-Hosted Runner (macOS)
+
+To run parallel mobile tests on real devices, you must set up a self-hosted runner on your Mac. Follow these steps:
+
+1. **Go to your repository on GitHub.**
+2. **Navigate to:** `Settings` → `Actions` → `Runners`.
+3. **Click the green "New self-hosted runner" button.**
+4. **Select your OS (macOS) and follow the instructions provided.**
+   - Example commands (your actual download link and token will be provided by GitHub):
+     ```bash
+     mkdir actions-runner && cd actions-runner
+     curl -o actions-runner-osx-arm64-2.316.0.tar.gz -L <download-link-from-github>
+     tar xzf actions-runner-osx-arm64-2.316.0.tar.gz
+     ./config.sh --url <repo-url> --token <token-from-github>
+     ./run.sh
+     ```
+
+---
+
+### 🔄 **(Recommended) Run the Self-Hosted Runner as a Service on macOS**
+
+To keep your runner always online (even after reboot or logout), install it as a service:
+
+1. **Navigate to your runner directory:**
+   ```bash
+   cd ~/actions-runner
+   ```
+2. **Install the service:**
+   ```bash
+   ./svc.sh install
+   ```
+3. **Start the service:**
+   ```bash
+   ./svc.sh start
+   ```
+4. **Check the service status:**
+   ```bash
+   ./svc.sh status
+   ```
+5. **To stop the service:**
+   ```bash
+   ./svc.sh stop
+   ```
+
+> For more details, see the [GitHub Docs: Configure the self-hosted runner application as a service](https://docs.github.com/en/actions/hosting-your-own-runners/configuring-the-self-hosted-runner-application-as-a-service).
+
+---
+
+**Tip:** If you ever need to update or reconfigure the runner, stop the service first, then make your changes, and start it again.
+
 ## 📁 Project Structure
 
 ```
