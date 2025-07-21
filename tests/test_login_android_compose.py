@@ -29,7 +29,8 @@ class TestAndroidLogin:
         options.no_reset = True
         
         # Connect to Appium server
-        self.driver = webdriver.Remote(
+        from appium.webdriver.webdriver import WebDriver
+        self.driver = WebDriver(
             command_executor='http://localhost:4724',
             options=options
         )
