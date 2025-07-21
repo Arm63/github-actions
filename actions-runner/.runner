@@ -1,9 +1,11 @@
 ﻿{
-  "agentId": 22,
-  "agentName": "Parallel_runner",
+  "agentId": 23,
+  "agentName": "Armens-MacBook-Pro",
   "poolId": 1,
   "poolName": "Default",
   "serverUrl": "https://pipelinesghubeus24.actions.githubusercontent.com/IQUSb8zZ9yH3niWjb63tywVRdh1hBAApsfBGbNn0eAVTNSwWeq/",
   "gitHubUrl": "https://github.com/Arm63/github-actions",
-  "workFolder": "_work"
+  "workFolder": "_work",
+  "useV2Flow": true,
+  "serverUrlV2": "https://broker.actions.githubusercontent.com/"
 }

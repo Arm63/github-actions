@@ -1,8 +1,8 @@
 #!/bin/bash
 
-SVC_NAME="actions.runner.Arm63-github-actions.Parallel_runner"
+SVC_NAME="actions.runner.Arm63-github-actions.Armens-MacBook-Pro"
 SVC_NAME=${SVC_NAME// /_}
-SVC_DESCRIPTION="GitHub Actions Runner (Arm63-github-actions.Parallel_runner)"
+SVC_DESCRIPTION="GitHub Actions Runner (Arm63-github-actions.Armens-MacBook-Pro)"
 
 user_id=`id -u`
 

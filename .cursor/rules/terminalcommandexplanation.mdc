@@ -1,0 +1,6 @@
+---
+alwaysApply: true
+---
+Terminal Command Approval Required
+
+Before executing any terminal command, present a dialog in our chat explaining what the command does. Wait for my explicit approval via a "Run" button before proceeding.
