@@ -114,7 +114,7 @@ jobs:
         
         # Verify servers are running
         if [ "$IOS_DEVICE_AVAILABLE" == "true" ]; then
-          if curl -s http://localhost:4723/status | grep -q '"ready":true'; then
+          if curl -s http://localhost:4723/wd/hub/status | grep -q '"ready":true'; then
             echo "✅ iOS Appium server ready"
           else
             echo "❌ iOS Appium server failed to start"
@@ -123,7 +123,7 @@ jobs:
         fi
         
         if [ "$ANDROID_DEVICE_AVAILABLE" == "true" ]; then
-          if curl -s http://localhost:4724/status | grep -q '"ready":true'; then
+          if curl -s http://localhost:4724/wd/hub/status | grep -q '"ready":true'; then
             echo "✅ Android Appium server ready"
           else
             echo "❌ Android Appium server failed to start"
