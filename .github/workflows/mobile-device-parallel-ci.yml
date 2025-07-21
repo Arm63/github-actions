@@ -91,19 +91,19 @@ jobs:
       run: |
         echo "🚀 Starting Appium servers..."
         
-        # Start iOS Appium server on port 4723
+        # Start iOS Appium server on port 4723 with /wd/hub base path
         if [ "$IOS_DEVICE_AVAILABLE" == "true" ]; then
-          echo "Starting iOS Appium server (port 4723)..."
-          appium --log appium-ios.log --log-level info --port 4723 &
+          echo "Starting iOS Appium server (port 4723, base path /wd/hub)..."
+          appium --log appium-ios.log --log-level info --port 4723 --base-path /wd/hub &
           IOS_APPIUM_PID=$!
           echo "IOS_APPIUM_PID=$IOS_APPIUM_PID" >> $GITHUB_ENV
           echo "iOS Appium PID: $IOS_APPIUM_PID"
         fi
         
-        # Start Android Appium server on port 4724
+        # Start Android Appium server on port 4724 with /wd/hub base path
         if [ "$ANDROID_DEVICE_AVAILABLE" == "true" ]; then
-          echo "Starting Android Appium server (port 4724)..."
-          appium --log appium-android.log --log-level info --port 4724 &
+          echo "Starting Android Appium server (port 4724, base path /wd/hub)..."
+          appium --log appium-android.log --log-level info --port 4724 --base-path /wd/hub &
           ANDROID_APPIUM_PID=$!
           echo "ANDROID_APPIUM_PID=$ANDROID_APPIUM_PID" >> $GITHUB_ENV
           echo "Android Appium PID: $ANDROID_APPIUM_PID"
@@ -150,7 +150,7 @@ jobs:
           export PLATFORM_VERSION="17.2"
           export TEAM_ID="2FHJSTZ57U"
           
-          if poetry run pytest tests/test_login_ios.py::TestLiveboardiOS::test_click_composable_ios -v -s 2>&1 | tee -a ios_test_result.txt; then
+          if poetry run pytest tests/test_login_ios.py::TestLiveboardiOS::test_liveboard_login_flow -v -s 2>&1 | tee -a ios_test_result.txt; then
             echo "✅ iOS tests PASSED" | tee -a ios_test_result.txt
             echo "IOS_TEST_RESULT=success" >> $GITHUB_ENV
           else
@@ -168,7 +168,7 @@ jobs:
           export ANDROID_DEVICE_NAME="Android Device"
           export ANDROID_PLATFORM_VERSION="11.0"
           
-          if poetry run pytest tests/test_login_android.py::test_click_login_button_only tests/test_login_android.py::test_click_composable -v -s 2>&1 | tee -a android_test_result.txt; then
+          if poetry run pytest tests/test_login_android_compose.py::TestAndroidLogin::test_android_login_flow -v -s 2>&1 | tee -a android_test_result.txt; then
             echo "✅ Android tests PASSED" | tee -a android_test_result.txt
             echo "ANDROID_TEST_RESULT=success" >> $GITHUB_ENV
           else
