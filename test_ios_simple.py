@@ -71,7 +71,7 @@ def test_ios_connection():
         options.set_capability("showXcodeLog", True)
         options.set_capability("usePrebuiltWDA", True)
         
-        driver = WebDriver('http://localhost:4723', options=options)
+        driver = WebDriver('http://localhost:4723/wd/hub', options=options)
         driver.implicitly_wait(10)
         
         print("✅ Connected to iOS device successfully!")

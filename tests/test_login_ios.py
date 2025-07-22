@@ -66,7 +66,7 @@ class TestLiveboardiOS:
         
         from appium.webdriver.webdriver import WebDriver
         self.driver = WebDriver(
-            command_executor='http://localhost:4723',
+            command_executor='http://localhost:4723/wd/hub',
             options=options
         )
         

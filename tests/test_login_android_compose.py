@@ -31,7 +31,7 @@ class TestAndroidLogin:
         # Connect to Appium server
         from appium.webdriver.webdriver import WebDriver
         self.driver = WebDriver(
-            command_executor='http://localhost:4724',
+            command_executor='http://localhost:4724/wd/hub',
             options=options
         )
         

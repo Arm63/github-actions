@@ -95,7 +95,7 @@ def driver():
     
     # Support different Appium ports for parallel execution
     appium_port = os.getenv('APPIUM_PORT', '4724')  # Default to 4724 for Android
-    appium_url = f'http://localhost:{appium_port}'
+    appium_url = f'http://localhost:{appium_port}/wd/hub'
     
     driver = webdriver.Remote(appium_url, options=options)
     driver.implicitly_wait(10)
