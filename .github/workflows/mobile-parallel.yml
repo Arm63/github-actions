@@ -8,8 +8,13 @@ jobs:
   parallel-mobile-tests:
     runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 60
+    env:
+      RUNNER_TOOL_CACHE: $HOME/_toolcache
 
     steps:
+      - name: Ensure tool cache exists
+        run: mkdir -p $RUNNER_TOOL_CACHE
+
       - name: Checkout code
         uses: actions/checkout@v4
 
