@@ -9,6 +9,7 @@
   "wdaLaunchTimeout": 180000,
   "wdaConnectionTimeout": 180000,
   "xcuitestTeamId": "2FHJSTZ57U",
+  "xcodeSigningId": "iPhone Developer",
   "updateWDABundleId": "2FHJSTZ57U.WebDriverAgentRunner",
   "useNewWDA": true,
   "wdaLocalPort": 8100,

@@ -8,12 +8,10 @@
   "newCommandTimeout": 600,
   "wdaLaunchTimeout": 180000,
   "wdaConnectionTimeout": 180000,
-  "xcodeOrgId": "2FHJSTZ57U",
+  "xcuitestTeamId": "2FHJSTZ57U",
   "xcodeSigningId": "iPhone Developer",
-  "updatedWDABundleId": "com.facebook.WebDriverAgentRunner",
-  "useNewWDA": false,
-  "usePrebuiltWDA": false,
-  "showXcodeLog": true,
-  "realDeviceLogger": "/usr/local/bin/deviceconsole",
-  "preventWDAAttachments": true
+  "updateWDABundleId": "2FHJSTZ57U.WebDriverAgentRunner",
+  "useNewWDA": true,
+  "wdaLocalPort": 8100,
+  "mjpegServerPort": 9100
 } 

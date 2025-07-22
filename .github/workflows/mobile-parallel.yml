@@ -6,7 +6,7 @@ on:
 
 jobs:
   parallel-mobile-tests:
-    runs-on: [self-hosted, macos, real-device]
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 60
 
     steps:
@@ -24,7 +24,8 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Python dependencies
-        run: poetry install
+        run: |
+          poetry install --no-interaction
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -33,29 +34,39 @@ jobs:
 
       - name: Install Appium and drivers
         run: |
-          npm install -g appium
+          npm install -g appium@2.19.0
           appium driver install uiautomator2
           appium driver install xcuitest
 
-      - name: Start Appium server for Android
-        run: nohup appium -p 4724 > appium-android.log 2>&1 &
-      
-      - name: Start Appium server for iOS
-        run: nohup appium -p 4723 > appium-ios.log 2>&1 &
-
-      - name: Wait for Appium servers to be ready
+      - name: Kill existing Appium servers
         run: |
-          sleep 10
-          nc -z localhost 4723
-          nc -z localhost 4724
+          lsof -ti:4723 | xargs kill -9 || true
+          lsof -ti:4724 | xargs kill -9 || true
 
-      - name: Run parallel mobile tests
-        run: poetry run python tests/test_parallel_mobile.py
+      - name: Start Appium servers
+        run: |
+          nohup appium -p 4723 > appium-ios.log 2>&1 &
+          nohup appium -p 4724 > appium-android.log 2>&1 &
 
-      - name: Upload Appium logs (optional)
+      - name: Wait for Appium servers
+        run: |
+          for i in {1..10}; do
+            if nc -z localhost 4723 && nc -z localhost 4724; then
+              echo "Appium servers are up!"
+              break
+            fi
+            echo "Waiting for Appium servers..."
+            sleep 2
+          done
+
+      - name: Run tests in parallel
+        run: |
+          poetry run python tests/test_parallel_mobile.py
+
+      - name: Upload Appium logs
         uses: actions/upload-artifact@v4
         with:
           name: appium-logs
           path: |
+            appium-ios.log
             appium-android.log
-            appium-ios.log 
